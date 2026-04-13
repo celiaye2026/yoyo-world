@@ -502,16 +502,16 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
     </div>
     <div class="chat-box" id="chat-box"></div>
     <div class="presets" id="presets">
-      <p class="preset-label">Pick a question to start:</p>
-      <button class="preset-btn" onclick="sendPreset('That IS weird — why would anyone live next to a river that floods every year?')">💭 That IS weird — why live next to a flooding river?</button>
-      <button class="preset-btn" onclick="sendPreset('Maybe the water comes from somewhere else, not local rain?')">🌧️ Maybe the water travels from somewhere else?</button>
-      <button class="preset-btn" onclick="sendPreset('I have no idea, it seems dangerous.')">🤔 I have no idea, it seems dangerous.</button>
+      <p class="preset-label">Pick a question, or type your own below:</p>
+      <button class="preset-btn" onclick="sendPreset('That IS weird — why would anyone live next to a river that floods every year?', this)">💭 That IS weird — why live next to a flooding river?</button>
+      <button class="preset-btn" onclick="sendPreset('Maybe the water comes from somewhere else, not local rain?', this)">🌧️ Maybe the water travels from somewhere else?</button>
+      <button class="preset-btn" onclick="sendPreset('I have no idea, it seems dangerous.', this)">🤔 I have no idea, it seems dangerous.</button>
     </div>
     <div class="chat-input-row">
-      <input id="chat-input" class="chat-input" placeholder="Ask Zara anything... (中文也可以！)" onkeydown="if(event.key==='Enter')sendMsg()"/>
+      <input id="chat-input" class="chat-input" placeholder="Ask Zara anything... (中文也可以！)" onkeydown="if(event.key==='Enter'&&!event.isComposing)sendMsg()"/>
       <button id="btn-send" class="btn-send" onclick="sendMsg()" disabled>↑</button>
     </div>
-    <div class="rounds-note" id="rounds-note">Round 1 of 3</div>
+    <div class="rounds-note" id="rounds-note">Round 1 of 5</div>
   </div>
 </div>
 
@@ -961,8 +961,10 @@ function initZara(){
   if(!allBigPiecesComplete()) return;
   S.zaraRound=0; S.history=[]; S.sending=false;
   document.getElementById('chat-box').innerHTML='';
+  // Reset preset buttons visibility
+  document.querySelectorAll('#presets .preset-btn').forEach(b=>b.style.display='');
   document.getElementById('presets').style.display='flex';
-  document.getElementById('rounds-note').textContent='Round 1 of 3';
+  document.getElementById('rounds-note').textContent='Round 1 of 5';
   document.getElementById('btn-send').disabled=true;
   document.getElementById('chat-input').value='';
   showScreen('zara');
@@ -985,18 +987,21 @@ function showTyping(){
 }
 function removeTyping(){ const t=document.getElementById('typing'); if(t) t.remove(); }
 
-function sendPreset(q){
+function sendPreset(q, btn){
+  // Hide just the clicked button; hide the whole block only when all are gone
+  btn.style.display='none';
+  const remaining = document.querySelectorAll('#presets .preset-btn:not([style*="none"])');
+  if(remaining.length===0) document.getElementById('presets').style.display='none';
   document.getElementById('chat-input').value=q;
   document.getElementById('btn-send').disabled=false;
   sendMsg();
 }
 
 async function sendMsg(){
-  if(S.sending||S.zaraRound>=3) return;
+  if(S.sending||S.zaraRound>=5) return;
   const inp=document.getElementById('chat-input');
   const text=inp.value.trim(); if(!text) return;
   inp.value='';
-  document.getElementById('presets').style.display='none';
   document.getElementById('btn-send').disabled=true;
   S.sending=true; S.zaraRound++;
   addMsg('user',text); S.history.push({role:'user',content:text}); showTyping();
@@ -1012,8 +1017,8 @@ async function sendMsg(){
     const reply=data.reply;
     S.history.push({role:'assistant',content:reply}); addMsg('zara',reply);
     const note=document.getElementById('rounds-note');
-    if(S.zaraRound>=3){ note.textContent='🌟 The full picture is ready!'; document.getElementById('btn-send').disabled=true; }
-    else{ note.textContent=`Round ${S.zaraRound+1} of 3`; document.getElementById('btn-send').disabled=false; }
+    if(S.zaraRound>=5){ note.textContent='🌟 The full picture is ready!'; document.getElementById('btn-send').disabled=true; }
+    else{ note.textContent=`Round ${S.zaraRound+1} of 5`; document.getElementById('btn-send').disabled=false; }
     if(reply.includes("I think you're ready to see the big picture now")) setTimeout(unlockZara,1800);
   }catch(err){
     removeTyping();

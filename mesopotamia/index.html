@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Let's Explore, Yoyo! — Mesopotamia</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#f5e6c4;--gold:#F0C040;--sand:#D4A96A;--terra:#C1440E;--text:#F5ECD7;--dim:#A89070;--purple:#7B68EE;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh;width:100vw;}
+
+/* ── SCREENS ── */
+.screen{display:none;position:fixed;inset:0;z-index:10;}
+.screen.active{display:flex;}
+
+/* ── GAME CANVAS ── (API key screen removed — key lives in Vercel env var) */
+
+/* ── GAME CANVAS ── */
+#screen-game{position:fixed;inset:0;overflow:hidden;background:linear-gradient(to bottom,#4a90c0 0%,#88cce8 40%,#f5d560 80%,#e89820 100%);}
+#bg-layer,#mid-layer,#fg-layer{position:absolute;bottom:0;height:100%;pointer-events:none;will-change:transform;}
+.collect-item{pointer-events:auto;}
+#bg-layer{width:5000px;z-index:1;}
+#mid-layer{width:5000px;z-index:2;}
+#fg-layer{width:5000px;z-index:3;}
+#ground-strip{position:absolute;bottom:0;left:0;width:5000px;height:88px;
+  background:linear-gradient(to bottom,#c8920a 0%,#9a6a08 100%);z-index:1;}
+#ground-strip::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;
+  background:repeating-linear-gradient(90deg,#a07010 0px,#d4a020 120px,#a07010 240px);}
+
+/* ── COLLECTIBLES ── */
+.collect-item{position:absolute;bottom:88px;display:flex;flex-direction:column;align-items:center;user-select:none;z-index:4;cursor:pointer;}
+.ci-orb{font-size:1.8rem;line-height:1;filter:drop-shadow(0 0 4px rgba(240,192,64,0));transition:filter .4s,transform .3s;}
+.collect-item.nearby .ci-orb{filter:drop-shadow(0 0 14px rgba(240,192,64,.9));transform:translateY(-6px) scale(1.15);}
+.collect-item:hover .ci-orb{filter:drop-shadow(0 0 10px rgba(240,192,64,.7));transform:translateY(-4px) scale(1.1);}
+.collect-item.done .ci-orb{opacity:.35;filter:drop-shadow(0 0 6px rgba(240,192,64,.3));}
+/* Zara trigger */
+.collect-item.zara-item .ci-orb{font-size:2.4rem;}
+.collect-item.zara-item.locked .ci-orb{filter:grayscale(1);opacity:.35;}
+
+/* ── YOYO ── */
+#yoyo-el{position:fixed;bottom:82px;z-index:20;transform:translateX(-50%);}
+#yoyo-el.walking{animation:yoyo-walk .42s ease-in-out infinite;}
+#yoyo-el.face-left svg{transform:scaleX(-1);}
+@keyframes yoyo-walk{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-7px)}}
+
+/* ── HUD ── */
+#hud{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:flex-start;padding:14px 18px;pointer-events:none;}
+.hud-back{pointer-events:auto;background:rgba(17,9,4,.8);border:1px solid rgba(212,169,106,.3);border-radius:50px;padding:6px 14px;font-size:.8rem;color:var(--dim);cursor:pointer;text-decoration:none;display:inline-block;transition:color .2s;}
+.hud-back:hover{color:var(--gold);}
+#hud-right{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
+.bp-hud{background:rgba(17,9,4,.85);border:1px solid rgba(212,169,106,.25);border-radius:14px;padding:7px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:52px;transition:border-color .4s;}
+.bp-hud.complete{border-color:var(--gold);box-shadow:0 0 10px rgba(240,192,64,.25);}
+.bp-emoji{font-size:1.2rem;line-height:1;}
+.bp-dots{display:flex;gap:4px;}
+.bp-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(212,169,106,.2);transition:all .4s;}
+.bp-dot.filled{background:var(--gold);border-color:var(--gold);box-shadow:0 0 5px rgba(240,192,64,.5);}
+#hud-hint{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:30;
+  background:rgba(17,9,4,.75);border:1px solid rgba(212,169,106,.2);border-radius:30px;padding:5px 14px;font-size:.73rem;color:var(--dim);}
+
+/* ── TOAST ── */
+.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(12px);z-index:200;
+  background:linear-gradient(135deg,var(--gold),var(--terra));color:white;
+  font-family:'Cinzel',serif;font-weight:700;font-size:.95rem;
+  padding:10px 26px;border-radius:50px;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ── CARD MODAL ── */
+#card-modal{position:fixed;inset:0;z-index:50;display:none;justify-content:center;align-items:center;
+  background:rgba(6,3,1,.8);backdrop-filter:blur(5px);}
+#card-modal.active{display:flex;}
+.content-card{background:linear-gradient(145deg,#2d1a08,#1a0d04);border:2px solid var(--gold);border-radius:24px;
+  padding:32px 28px;max-width:520px;width:93%;text-align:center;position:relative;
+  box-shadow:0 0 60px rgba(240,192,64,.2);animation:cardUp .3s ease;max-height:90vh;overflow-y:auto;}
+@keyframes cardUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.card-type-badge{font-size:.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px;}
+.card-emoji{font-size:2.8rem;display:block;margin-bottom:8px;}
+.card-title{font-family:'Cinzel',serif;color:var(--gold);font-size:1.2rem;margin-bottom:14px;}
+.card-body{color:var(--text);font-size:.95rem;line-height:1.78;margin-bottom:8px;text-align:left;}
+.card-hint{color:var(--dim);font-size:.76rem;margin-bottom:20px;}
+.kw{text-decoration:underline dotted var(--sand);cursor:pointer;position:relative;}
+.kw .kw-tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
+  background:#2d1a08;border:1px solid var(--sand);border-radius:8px;padding:4px 10px;
+  font-size:.76rem;color:var(--sand);white-space:nowrap;pointer-events:none;z-index:99;}
+.kw.open{color:var(--gold);}.kw.open .kw-tip{display:block;}
+.card-actions{display:flex;flex-direction:column;gap:9px;margin-top:16px;}
+.btn-collect{background:linear-gradient(135deg,var(--gold),var(--terra));border:none;border-radius:50px;padding:11px 28px;color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;transition:transform .2s;}
+.btn-collect:hover{transform:translateY(-2px);}
+.btn-secondary{background:transparent;border:1px solid rgba(212,169,106,.35);border-radius:50px;padding:9px 24px;color:var(--dim);font-family:'Nunito',sans-serif;font-size:.88rem;cursor:pointer;transition:color .2s,border-color .2s;}
+.btn-secondary:hover{color:var(--gold);border-color:var(--gold);}
+.already-badge{background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);border-radius:50px;padding:9px 20px;color:var(--gold);font-size:.85rem;}
+
+/* ── GALLERY CARD ── */
+.gallery-wrap{position:relative;margin-bottom:12px;}
+.gallery-img{width:100%;height:240px;object-fit:cover;border-radius:14px;border:1px solid rgba(212,169,106,.25);background:#1a0e04;}
+.gallery-tag{position:absolute;top:10px;left:10px;background:rgba(17,9,4,.85);border:1px solid var(--sand);border-radius:6px;padding:3px 9px;font-size:.68rem;font-weight:700;color:var(--sand);letter-spacing:1px;}
+.gallery-nav{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+.gallery-btn{background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.3);border-radius:50%;width:34px;height:34px;color:var(--gold);font-size:1.1rem;cursor:pointer;transition:background .2s;}
+.gallery-btn:hover{background:rgba(240,192,64,.25);}
+.gallery-btn:disabled{opacity:.25;cursor:default;}
+.gallery-cap{font-size:.8rem;color:var(--dim);flex:1;text-align:center;padding:0 8px;line-height:1.4;}
+.gallery-dots{display:flex;gap:5px;justify-content:center;margin-top:6px;}
+.g-dot{width:7px;height:7px;border-radius:50%;background:rgba(212,169,106,.25);transition:background .3s;}
+.g-dot.active{background:var(--gold);}
+
+/* ── VIDEO CARD ── */
+.yt-preview{position:relative;border-radius:14px;overflow:hidden;margin-bottom:12px;cursor:pointer;background:#000;}
+.yt-thumb{width:100%;display:block;border-radius:14px;}
+.yt-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);transition:background .2s;}
+.yt-play:hover{background:rgba(0,0,0,.4);}
+.yt-play-btn{width:58px;height:58px;background:rgba(255,0,0,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.5);}
+.yt-play-btn::after{content:'';border-style:solid;border-width:11px 0 11px 20px;border-color:transparent transparent transparent white;margin-left:4px;}
+.yt-meta{text-align:left;margin-bottom:12px;}
+.yt-ch{color:var(--dim);font-size:.78rem;margin-top:3px;}
+.yt-watch{display:inline-block;background:#ff0000;color:white;font-family:'Nunito',sans-serif;font-weight:700;font-size:.88rem;padding:9px 20px;border-radius:50px;text-decoration:none;transition:opacity .2s;margin-bottom:4px;}
+.yt-watch:hover{opacity:.85;}
+.video-ctx{color:var(--dim);font-size:.82rem;line-height:1.55;margin-bottom:8px;font-style:italic;}
+
+/* ── MAP CARD ── */
+#leaflet-map{height:280px;border-radius:14px;margin-bottom:12px;border:1px solid rgba(212,169,106,.25);background:#0d2040;}
+.map-note{color:var(--dim);font-size:.78rem;line-height:1.5;margin-bottom:8px;}
+
+/* ── ZARA CHAT ── */
+#screen-zara{flex-direction:column;align-items:center;background:rgba(8,4,18,.9);backdrop-filter:blur(8px);z-index:60;}
+.zara-wrap{display:flex;flex-direction:column;width:100%;max-width:600px;height:100vh;padding:18px 18px 14px;}
+.zara-hdr{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(123,104,238,.3);margin-bottom:12px;flex-shrink:0;}
+.zara-avatar{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#5b3ecf,#9b6bff);display:flex;align-items:center;justify-content:center;font-size:1.5rem;box-shadow:0 0 18px rgba(123,104,238,.5);}
+.zara-info h2{color:var(--purple);font-family:'Cinzel',serif;font-size:1.05rem;}
+.zara-info p{color:var(--dim);font-size:.8rem;}
+.chat-box{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:11px;padding-right:4px;min-height:0;}
+.chat-box::-webkit-scrollbar{width:3px;}.chat-box::-webkit-scrollbar-thumb{background:rgba(123,104,238,.3);border-radius:3px;}
+.msg{display:flex;gap:9px;align-items:flex-start;}
+.msg.user{flex-direction:row-reverse;}
+.msg-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;}
+.msg.zara .msg-av{background:linear-gradient(135deg,#5b3ecf,#9b6bff);}
+.msg.user .msg-av{background:rgba(240,192,64,.15);border:1px solid rgba(240,192,64,.3);}
+.msg-bubble{max-width:78%;padding:9px 13px;border-radius:15px;font-size:.9rem;line-height:1.6;}
+.msg.zara .msg-bubble{background:rgba(123,104,238,.18);border:1px solid rgba(123,104,238,.3);border-top-left-radius:4px;}
+.msg.user .msg-bubble{background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.25);border-top-right-radius:4px;}
+.typing-dots{display:flex;gap:5px;padding:3px 0;}
+.dot{width:7px;height:7px;background:var(--purple);border-radius:50%;animation:dp 1.2s infinite ease-in-out;}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes dp{0%,60%,100%{transform:scale(.8);opacity:.5}30%{transform:scale(1.2);opacity:1}}
+.presets{display:flex;flex-direction:column;gap:7px;margin:8px 0;flex-shrink:0;}
+.preset-label{color:var(--dim);font-size:.76rem;}
+.preset-btn{background:rgba(123,104,238,.12);border:1px solid rgba(123,104,238,.35);border-radius:11px;padding:9px 13px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.86rem;cursor:pointer;text-align:left;transition:background .2s;}
+.preset-btn:hover{background:rgba(123,104,238,.25);}
+.chat-input-row{display:flex;gap:9px;flex-shrink:0;margin-top:9px;}
+.chat-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(212,169,106,.3);border-radius:50px;padding:10px 17px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;}
+.chat-input:focus{border-color:var(--purple);}
+.btn-send{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--purple),#5b3ecf);border:none;color:white;font-size:1.1rem;cursor:pointer;flex-shrink:0;transition:transform .2s;}
+.btn-send:hover:not(:disabled){transform:scale(1.08);}
+.btn-send:disabled{opacity:.35;cursor:default;}
+.rounds-note{color:var(--dim);font-size:.73rem;text-align:center;margin-top:5px;flex-shrink:0;}
+
+/* ── FRAMEWORK ── */
+#screen-framework{flex-direction:column;align-items:center;overflow-y:auto;background:radial-gradient(ellipse at 50% 0%,#12200a 0%,var(--bg) 70%);padding:36px 18px 60px;z-index:70;}
+.fw-title{font-family:'Cinzel',serif;color:var(--gold);font-size:1.9rem;text-align:center;margin:8px 0 6px;}
+.fw-badge{background:linear-gradient(135deg,var(--gold),var(--terra));color:white;padding:5px 20px;border-radius:50px;font-weight:700;font-size:.86rem;margin:8px 0 16px;display:inline-block;}
+.fw-sub{color:var(--dim);font-size:.93rem;margin-bottom:28px;text-align:center;}
+.chain{display:flex;flex-direction:column;align-items:center;width:100%;max-width:460px;}
+.chain-node{display:flex;align-items:center;gap:13px;background:rgba(45,26,8,.8);border:2px solid rgba(240,192,64,.25);border-radius:15px;padding:13px 18px;width:100%;opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s,border-color .4s;}
+.chain-node.revealed{opacity:1;transform:translateY(0);border-color:rgba(240,192,64,.65);}
+.chain-icon{font-size:1.7rem;flex-shrink:0;}
+.chain-label{font-family:'Cinzel',serif;color:var(--gold);font-size:.77rem;letter-spacing:.5px;text-transform:uppercase;}
+.chain-desc{color:var(--text);font-size:.88rem;margin-top:2px;line-height:1.42;}
+.chain-arrow{color:var(--gold);font-size:1.3rem;text-align:center;opacity:0;transition:opacity .5s;margin:1px 0;}
+.chain-arrow.revealed{opacity:.65;}
+.fw-question{margin-top:26px;background:rgba(123,104,238,.08);border:1px solid rgba(123,104,238,.3);border-radius:15px;padding:18px 22px;max-width:460px;width:100%;text-align:center;opacity:0;transition:opacity .6s;}
+.fw-question.revealed{opacity:1;}
+.fw-question h3{color:var(--purple);font-family:'Cinzel',serif;font-size:.97rem;margin-bottom:8px;}
+.fw-question p{color:var(--dim);font-size:.88rem;line-height:1.6;}
+.btn-replay{margin-top:26px;background:transparent;border:2px solid var(--gold);border-radius:50px;padding:11px 34px;color:var(--gold);font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:background .2s,color .2s;}
+.btn-replay:hover{background:var(--gold);color:var(--bg);}
+</style>
+</head>
+<body>
+
+<!-- ══ GAME ══ -->
+<div id="screen-game" class="screen active">
+  <!-- Background layer (sky + distant) -->
+  <div id="bg-layer">
+    <svg width="5000" height="600" viewBox="0 0 5000 600" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:5000px;height:100%">
+      <defs>
+        <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%"   stop-color="#3a85b8"/>
+          <stop offset="45%"  stop-color="#7ec8e8"/>
+          <stop offset="80%"  stop-color="#f5d560"/>
+          <stop offset="100%" stop-color="#e89820"/>
+        </linearGradient>
+        <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#e8dfa0" stop-opacity=".4"/>
+          <stop offset="100%" stop-color="#e8dfa0" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#F0C040" stop-opacity=".35"/>
+          <stop offset="100%" stop-color="#F0C040" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="5000" height="600" fill="url(#sky)"/>
+      <!-- Sun — high daytime position, warm bright -->
+      <circle cx="2500" cy="55" r="120" fill="url(#sunGlow)"/>
+      <circle cx="2500" cy="55" r="52"  fill="#ffe050" opacity=".95"/>
+      <circle cx="2500" cy="55" r="40"  fill="#fff5a0" opacity="1"/>
+      <!-- Sun rays -->
+      <g stroke="#ffe050" stroke-width="2.5" opacity=".5">
+        <line x1="2500" y1="0"  x2="2500" y2="18"/>
+        <line x1="2550" y1="8"  x2="2538" y2="24"/>
+        <line x1="2588" y1="28" x2="2572" y2="38"/>
+        <line x1="2450" y1="8"  x2="2462" y2="24"/>
+        <line x1="2412" y1="28" x2="2428" y2="38"/>
+      </g>
+      <!-- Distant silhouette hills (zone 0) — warm terracotta -->
+      <path d="M0,360 Q80,320 160,340 Q240,355 320,325 Q400,295 480,318 Q560,340 640,320 Q720,300 800,322 Q880,345 960,330 Q1000,322 1000,322 L1000,380 L0,380Z" fill="#b87040" opacity=".7"/>
+      <!-- Distant dunes (zone 2) — golden sand -->
+      <path d="M1000,358 Q1080,330 1160,348 Q1240,365 1320,338 Q1400,310 1480,330 Q1560,348 1640,325 Q1720,302 1800,320 Q1880,338 1960,322 Q2000,315 2000,315 L2000,380 L1000,380Z" fill="#c8880a" opacity=".6"/>
+      <!-- Distant horizon (zones 3-5) — warm brown -->
+      <path d="M2000,345 Q2200,330 2400,340 Q2600,350 2800,332 Q3000,315 3200,325 Q3400,335 3600,320 Q3800,305 4000,318 Q4200,330 4400,315 Q4600,300 4800,312 Q4900,318 5000,315 L5000,380 L2000,380Z" fill="#a06830" opacity=".55"/>
+    </svg>
+  </div>
+
+  <!-- Midground layer (main landscape) -->
+  <div id="mid-layer">
+    <svg width="5000" height="600" viewBox="0 0 5000 600" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:5000px;height:100%">
+      <defs>
+        <linearGradient id="riverGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#1a4a7a"/>
+          <stop offset="100%" stop-color="#0d2a4a"/>
+        </linearGradient>
+        <linearGradient id="zigGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#c1890a"/>
+          <stop offset="100%" stop-color="#5a3a10"/>
+        </linearGradient>
+        <linearGradient id="fieldGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#3d5a1a"/>
+          <stop offset="100%" stop-color="#2a3f10"/>
+        </linearGradient>
+      </defs>
+
+      <!-- ═══ ZONE 1: RIVERS (0-1000) ═══ -->
+      <!-- Euphrates — far river band -->
+      <path d="M-20,185 C80,170 180,192 280,178 C380,164 480,182 580,168 C680,154 780,172 880,162 C940,157 980,160 1020,158" fill="none" stroke="url(#riverGrad)" stroke-width="48" opacity=".8"/>
+      <!-- Euphrates banks -->
+      <path d="M-20,162 C80,148 180,168 280,155 C380,142 480,158 580,145 L580,215 C480,208 380,190 280,202 C180,216 80,194 -20,208Z" fill="#2a1a08" opacity=".5"/>
+      <!-- Tigris — closer river -->
+      <path d="M-20,285 C80,268 180,290 320,275 C460,260 560,282 700,268 C820,256 920,272 1020,262" fill="none" stroke="url(#riverGrad)" stroke-width="55" opacity=".85"/>
+      <!-- Sandy bank between rivers -->
+      <path d="M0,215 C200,208 400,220 600,210 C800,200 900,210 1000,208 L1000,268 C900,264 800,255 600,262 C400,270 200,256 0,264Z" fill="#3d2a12" opacity=".6"/>
+      <!-- Reeds at Tigris edge -->
+      <line x1="50" y1="285" x2="45" y2="250" stroke="#2d4a1a" stroke-width="2.5" opacity=".8"/>
+      <line x1="65" y1="285" x2="62" y2="245" stroke="#2d4a1a" stroke-width="2.5" opacity=".8"/>
+      <line x1="80" y1="285" x2="78" y2="252" stroke="#2d4a1a" stroke-width="2"/>
+      <line x1="200" y1="285" x2="196" y2="248" stroke="#2d4a1a" stroke-width="2.5" opacity=".7"/>
+      <line x1="215" y1="285" x2="213" y2="252" stroke="#2d4a1a" stroke-width="2"/>
+      <line x1="750" y1="268" x2="746" y2="233" stroke="#2d4a1a" stroke-width="2" opacity=".7"/>
+      <line x1="765" y1="268" x2="762" y2="238" stroke="#2d4a1a" stroke-width="2"/>
+      <line x1="900" y1="262" x2="896" y2="228" stroke="#2d4a1a" stroke-width="2.5" opacity=".75"/>
+      <!-- Palm trees (zone 1) -->
+      <!-- Palm at x=140 -->
+      <rect x="137" y="330" width="7" height="100" fill="#2d1a06" rx="3"/>
+      <path d="M141,332 Q108,300 88,294" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M141,332 Q115,296 100,290" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M141,332 Q142,285 148,278" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M141,332 Q168,298 182,294" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M141,332 Q172,312 188,315" stroke="#3d5a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <!-- Palm at x=340 -->
+      <rect x="337" y="320" width="7" height="115" fill="#2d1a06" rx="3"/>
+      <path d="M341,322 Q308,288 285,282" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M341,322 Q315,285 300,280" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M341,322 Q342,272 350,265" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M341,322 Q370,288 386,285" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M341,322 Q372,308 390,312" stroke="#3d5a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <!-- Palm at x=620 -->
+      <rect x="617" y="338" width="7" height="96" fill="#2d1a06" rx="3"/>
+      <path d="M621,340 Q590,308 572,302" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M621,340 Q596,305 580,300" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M621,340 Q622,292 628,285" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M621,340 Q649,307 664,304" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <!-- Palm at x=850 -->
+      <rect x="847" y="325" width="7" height="110" fill="#2d1a06" rx="3"/>
+      <path d="M851,327 Q820,293 800,288" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M851,327 Q824,290 808,285" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M851,327 Q852,278 858,272" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M851,327 Q880,294 895,292" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
+
+      <!-- ═══ ZONE 2: DESERT (1000-2000) ═══ -->
+      <!-- Barren soil fill -->
+      <rect x="1000" y="340" width="1000" height="160" fill="#2a1a08" opacity=".7"/>
+      <!-- Cracked earth lines -->
+      <line x1="1050" y1="420" x2="1120" y2="400" stroke="#3d2508" stroke-width="1.2" opacity=".6"/>
+      <line x1="1120" y1="400" x2="1200" y2="415" stroke="#3d2508" stroke-width="1.2" opacity=".6"/>
+      <line x1="1200" y1="415" x2="1250" y2="395" stroke="#3d2508" stroke-width="1" opacity=".5"/>
+      <line x1="1300" y1="408" x2="1380" y2="425" stroke="#3d2508" stroke-width="1.2" opacity=".6"/>
+      <line x1="1380" y1="425" x2="1460" y2="405" stroke="#3d2508" stroke-width="1" opacity=".5"/>
+      <line x1="1500" y1="415" x2="1580" y2="398" stroke="#3d2508" stroke-width="1.2" opacity=".6"/>
+      <line x1="1580" y1="398" x2="1660" y2="418" stroke="#3d2508" stroke-width="1" opacity=".5"/>
+      <line x1="1700" y1="405" x2="1780" y2="422" stroke="#3d2508" stroke-width="1.2" opacity=".6"/>
+      <line x1="1800" y1="412" x2="1880" y2="398" stroke="#3d2508" stroke-width="1" opacity=".55"/>
+      <!-- Sun rays -->
+      <line x1="1500" y1="60" x2="1500" y2="160" stroke="#F0C040" stroke-width="1.5" opacity=".25"/>
+      <line x1="1500" y1="60" x2="1420" y2="145" stroke="#F0C040" stroke-width="1.5" opacity=".2"/>
+      <line x1="1500" y1="60" x2="1580" y2="145" stroke="#F0C040" stroke-width="1.5" opacity=".2"/>
+      <line x1="1500" y1="60" x2="1350" y2="120" stroke="#F0C040" stroke-width="1" opacity=".15"/>
+      <line x1="1500" y1="60" x2="1650" y2="120" stroke="#F0C040" stroke-width="1" opacity=".15"/>
+      <!-- Rocks -->
+      <path d="M1160,435 Q1145,408 1185,402 Q1215,398 1225,418 Q1232,435 1160,435Z" fill="#3d2a10" opacity=".9"/>
+      <path d="M1550,440 Q1532,415 1568,410 Q1595,406 1603,425 Q1608,440 1550,440Z" fill="#3d2a10" opacity=".85"/>
+      <path d="M1820,438 Q1808,416 1840,412 Q1862,408 1868,424 Q1872,438 1820,438Z" fill="#3d2a10" opacity=".9"/>
+
+      <!-- ═══ ZONE 3: AGRICULTURE (2000-3000) ═══ -->
+      <!-- Main irrigation channel -->
+      <rect x="2000" y="400" width="1000" height="20" fill="#1a3a5e" opacity=".8" rx="2"/>
+      <!-- Side channels -->
+      <rect x="2080" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
+      <rect x="2180" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
+      <rect x="2320" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
+      <rect x="2480" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
+      <rect x="2640" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
+      <rect x="2800" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
+      <rect x="2920" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
+      <!-- Fields -->
+      <rect x="2090" y="345" width="82" height="55" fill="url(#fieldGrad)" opacity=".8"/>
+      <rect x="2190" y="345" width="122" height="55" fill="#2a4210" opacity=".75"/>
+      <rect x="2330" y="345" width="142" height="55" fill="url(#fieldGrad)" opacity=".8"/>
+      <rect x="2490" y="345" width="142" height="55" fill="#2a4210" opacity=".75"/>
+      <rect x="2650" y="345" width="142" height="55" fill="url(#fieldGrad)" opacity=".8"/>
+      <rect x="2810" y="345" width="102" height="55" fill="#2a4210" opacity=".75"/>
+      <!-- Field crop lines -->
+      <line x1="2100" y1="355" x2="2170" y2="355" stroke="#4a6b22" stroke-width="1" opacity=".4"/>
+      <line x1="2100" y1="362" x2="2170" y2="362" stroke="#4a6b22" stroke-width="1" opacity=".4"/>
+      <line x1="2100" y1="369" x2="2170" y2="369" stroke="#4a6b22" stroke-width="1" opacity=".4"/>
+      <!-- Farmer silhouettes -->
+      <ellipse cx="2380" cy="394" rx="5" ry="9" fill="#1a0e04" opacity=".8"/>
+      <rect x="2377" y="390" width="6" height="13" fill="#1a0e04" opacity=".8"/>
+      <line x1="2380" y1="396" x2="2390" y2="402" stroke="#1a0e04" stroke-width="2" opacity=".7"/>
+      <ellipse cx="2620" cy="392" rx="5" ry="9" fill="#1a0e04" opacity=".8"/>
+      <rect x="2617" y="388" width="6" height="13" fill="#1a0e04" opacity=".8"/>
+      <!-- Date palms (small grove, zone 3 right) -->
+      <rect x="2867" y="310" width="5" height="90" fill="#2d1a06" rx="2"/>
+      <path d="M2870,312 Q2848,288 2835,284" stroke="#3d5a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M2870,312 Q2871,280 2876,274" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M2870,312 Q2892,288 2904,285" stroke="#3d5a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <rect x="2930" y="316" width="5" height="86" fill="#2d1a06" rx="2"/>
+      <path d="M2933,318 Q2912,296 2900,292" stroke="#3d5a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M2933,318 Q2934,286 2939,280" stroke="#4a6b22" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <path d="M2933,318 Q2955,296 2966,294" stroke="#3d5a1a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+      <rect x="2980" y="322" width="5" height="80" fill="#2d1a06" rx="2"/>
+      <path d="M2983,324 Q2962,302 2950,298" stroke="#3d5a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <path d="M2983,324 Q2984,292 2990,286" stroke="#4a6b22" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+
+      <!-- ═══ ZONE 4: ZIGGURAT (3000-4000) ═══ -->
+      <!-- City wall background -->
+      <rect x="3000" y="310" width="1000" height="22" fill="#4a2e0a" opacity=".85"/>
+      <rect x="3020" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
+      <rect x="3065" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
+      <rect x="3110" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
+      <rect x="3155" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
+      <rect x="3780" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
+      <rect x="3825" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
+      <rect x="3870" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
+      <rect x="3915" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
+      <!-- Low buildings background -->
+      <rect x="3050" y="330" width="80" height="60" fill="#3d2208" opacity=".7"/>
+      <rect x="3150" y="325" width="65" height="65" fill="#3d2208" opacity=".65"/>
+      <rect x="3850" y="332" width="75" height="58" fill="#3d2208" opacity=".7"/>
+      <rect x="3940" y="328" width="60" height="62" fill="#3d2208" opacity=".65"/>
+      <!-- THE ZIGGURAT — centered at x=3500 -->
+      <!-- Level 1 (base) -->
+      <rect x="3355" y="340" width="290" height="60" fill="#5a3a10" rx="2"/>
+      <rect x="3355" y="340" width="290" height="5" fill="#8b5e1a" opacity=".5"/>
+      <!-- Level 2 -->
+      <rect x="3385" y="283" width="230" height="57" fill="#6d4a1a" rx="2"/>
+      <rect x="3385" y="283" width="230" height="5" fill="#9b6e2a" opacity=".5"/>
+      <!-- Level 3 -->
+      <rect x="3415" y="232" width="170" height="51" fill="#8b5e22" rx="2"/>
+      <rect x="3415" y="232" width="170" height="5" fill="#b07838" opacity=".5"/>
+      <!-- Level 4 -->
+      <rect x="3443" y="186" width="114" height="46" fill="#a0722a" rx="2"/>
+      <rect x="3443" y="186" width="114" height="5" fill="#c08838" opacity=".5"/>
+      <!-- Level 5 -->
+      <rect x="3468" y="145" width="64" height="41" fill="#b88035" rx="2"/>
+      <rect x="3468" y="145" width="64" height="5" fill="#d09845" opacity=".5"/>
+      <!-- Shrine at top -->
+      <rect x="3482" y="118" width="36" height="27" fill="#c1890a" rx="2"/>
+      <rect x="3482" y="118" width="36" height="4" fill="#F0C040" opacity=".6"/>
+      <!-- Shrine arch -->
+      <path d="M3490,118 Q3500,108 3510,118" fill="#8b5a08" stroke="none"/>
+      <!-- Flame on top -->
+      <path d="M3500,118 Q3494,106 3500,98 Q3506,106 3500,118Z" fill="#F0C040" opacity=".9"/>
+      <path d="M3500,115 Q3496,108 3500,103 Q3504,108 3500,115Z" fill="white" opacity=".7"/>
+      <!-- Central staircase (front face) -->
+      <rect x="3497" y="340" width="7" height="60" fill="#3a2508" opacity=".6"/>
+      <rect x="3497" y="283" width="7" height="57" fill="#3a2508" opacity=".6"/>
+      <rect x="3497" y="232" width="7" height="51" fill="#3a2508" opacity=".6"/>
+      <rect x="3497" y="186" width="7" height="46" fill="#3a2508" opacity=".6"/>
+      <rect x="3497" y="145" width="7" height="41" fill="#3a2508" opacity=".6"/>
+      <!-- Processional path -->
+      <path d="M3455,400 L3455,360 L3500,360" fill="none" stroke="#6d4a1a" stroke-width="8" opacity=".6"/>
+      <!-- Small people near base -->
+      <ellipse cx="3320" cy="396" rx="4" ry="8" fill="#1a0e04" opacity=".7"/>
+      <ellipse cx="3680" cy="396" rx="4" ry="8" fill="#1a0e04" opacity=".7"/>
+
+      <!-- ═══ ZONE 5: SCRIBE WORKSHOP (4000-5000) ═══ -->
+      <!-- Courtyard wall -->
+      <rect x="4020" y="200" width="640" height="250" fill="#1e1008" opacity=".9"/>
+      <!-- Wall texture lines -->
+      <rect x="4020" y="215" width="640" height="3" fill="#3d2208" opacity=".4"/>
+      <rect x="4020" y="265" width="640" height="3" fill="#3d2208" opacity=".4"/>
+      <rect x="4020" y="315" width="640" height="3" fill="#3d2208" opacity=".4"/>
+      <rect x="4020" y="365" width="640" height="3" fill="#3d2208" opacity=".4"/>
+      <!-- Arched doorway -->
+      <rect x="4260" y="260" width="120" height="190" fill="#2d1a08" rx="4"/>
+      <path d="M4260,260 Q4320,210 4380,260Z" fill="#2d1a08"/>
+      <!-- Interior warm glow -->
+      <radialGradient id="doorGlow" cx="50%" cy="70%" r="60%">
+        <stop offset="0%" stop-color="#c1890a" stop-opacity=".5"/>
+        <stop offset="100%" stop-color="#c1890a" stop-opacity="0"/>
+      </radialGradient>
+      <rect x="4262" y="262" width="116" height="186" fill="url(#doorGlow)" rx="3"/>
+      <!-- Tablet stacks outside right -->
+      <rect x="4400" y="395" width="28" height="5" fill="#8b6914" opacity=".9"/>
+      <rect x="4402" y="387" width="24" height="8" fill="#9b7920" opacity=".85"/>
+      <rect x="4400" y="379" width="28" height="8" fill="#8b6914" opacity=".9"/>
+      <rect x="4404" y="371" width="20" height="8" fill="#9b7920" opacity=".8"/>
+      <!-- Tablet stacks left -->
+      <rect x="4140" y="393" width="26" height="5" fill="#8b6914" opacity=".9"/>
+      <rect x="4142" y="384" width="22" height="9" fill="#9b7920" opacity=".85"/>
+      <rect x="4140" y="376" width="26" height="8" fill="#8b6914" opacity=".9"/>
+      <!-- Oil lamps on wall -->
+      <circle cx="4060" cy="280" r="6" fill="#c1890a" opacity=".8"/>
+      <path d="M4060,274 Q4055,265 4060,260 Q4065,265 4060,274Z" fill="#F0C040" opacity=".85"/>
+      <circle cx="4620" cy="280" r="6" fill="#c1890a" opacity=".8"/>
+      <path d="M4620,274 Q4615,265 4620,260 Q4625,265 4620,274Z" fill="#F0C040" opacity=".85"/>
+      <circle cx="4060" cy="355" r="5" fill="#c1890a" opacity=".7"/>
+      <path d="M4060,350 Q4056,342 4060,338 Q4064,342 4060,350Z" fill="#F0C040" opacity=".8"/>
+      <!-- Scribe sitting inside doorway -->
+      <ellipse cx="4320" cy="400" rx="6" ry="10" fill="#1a0e04" opacity=".8"/>
+      <rect x="4315" y="396" width="10" height="15" fill="#1a0e04" opacity=".8"/>
+      <line x1="4320" y1="400" x2="4336" y2="408" stroke="#1a0e04" stroke-width="2" opacity=".8"/>
+    </svg>
+  </div>
+
+  <!-- Foreground layer (ground + collectibles) -->
+  <div id="fg-layer">
+    <div id="ground-strip"></div>
+    <!-- collectibles injected by JS -->
+  </div>
+
+  <!-- Yoyo character (fixed screen position) -->
+  <div id="yoyo-el">
+    <svg width="52" height="68" viewBox="0 0 70 92">
+      <defs><clipPath id="sc"><rect x="21" y="36" width="28" height="24" rx="8"/></clipPath></defs>
+      <rect x="37" y="32" width="12" height="16" rx="3.5" fill="#7a3b10" opacity=".85"/>
+      <rect x="21" y="36" width="28" height="24" rx="8" fill="#ff85c0"/>
+      <g clip-path="url(#sc)">
+        <rect x="0" y="36" width="70" height="4" fill="#111"/>
+        <rect x="0" y="44" width="70" height="4" fill="#111"/>
+        <rect x="0" y="52" width="70" height="4" fill="#111"/>
+      </g>
+      <line x1="21" y1="40" x2="8" y2="52" stroke="#ff85c0" stroke-width="6" stroke-linecap="round"/>
+      <line x1="49" y1="40" x2="62" y2="52" stroke="#ff85c0" stroke-width="6" stroke-linecap="round"/>
+      <line x1="16" y1="46" x2="11.5" y2="49" stroke="#111" stroke-width="2.2" stroke-linecap="round" opacity=".7"/>
+      <line x1="54" y1="46" x2="58.5" y2="49" stroke="#111" stroke-width="2.2" stroke-linecap="round" opacity=".7"/>
+      <ellipse cx="15" cy="32" rx="8" ry="18" fill="#2d1a06"/>
+      <ellipse cx="55" cy="32" rx="8" ry="18" fill="#2d1a06"/>
+      <circle cx="35" cy="24" r="16" fill="#ffbe80"/>
+      <path d="M19 19 L51 19 Q51 6 35 6 Q19 6 19 19Z" fill="#2d1a06"/>
+      <rect x="23" y="21.5" width="9.5" height="7" rx="2" fill="none" stroke="#3a3a3a" stroke-width="1.8"/>
+      <rect x="37" y="21.5" width="9.5" height="7" rx="2" fill="none" stroke="#3a3a3a" stroke-width="1.8"/>
+      <line x1="32.5" y1="25" x2="37" y2="25" stroke="#3a3a3a" stroke-width="1.5"/>
+      <line x1="23" y1="25" x2="19.5" y2="27" stroke="#3a3a3a" stroke-width="1.4" stroke-linecap="round"/>
+      <line x1="46.5" y1="25" x2="50" y2="27" stroke="#3a3a3a" stroke-width="1.4" stroke-linecap="round"/>
+      <circle cx="27.75" cy="25" r="2.3" fill="#3d2206"/>
+      <circle cx="41.75" cy="25" r="2.3" fill="#3d2206"/>
+      <circle cx="28.8" cy="24" r="1" fill="white"/>
+      <circle cx="42.8" cy="24" r="1" fill="white"/>
+      <path d="M28 30 Q35 36 42 30" stroke="#3d2206" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <rect x="22" y="58" width="10" height="18" rx="5" fill="#8b6914"/>
+      <rect x="38" y="58" width="10" height="18" rx="5" fill="#8b6914"/>
+    </svg>
+  </div>
+
+  <!-- HUD -->
+  <div id="hud">
+    <a class="hud-back" href="../index.html">← World Map</a>
+    <div id="hud-right"></div>
+  </div>
+  <div id="hud-hint">← → to walk &nbsp;·&nbsp; click or SPACE to open</div>
+</div>
+
+<!-- ══ CARD MODAL ══ -->
+<div id="card-modal">
+  <div class="content-card" id="card-inner"></div>
+</div>
+
+<!-- ══ ZARA ══ -->
+<div id="screen-zara" class="screen">
+  <div class="zara-wrap">
+    <div class="zara-hdr">
+      <div class="zara-avatar">🧭</div>
+      <div class="zara-info"><h2>Zara</h2><p>Your AI time-travel guide</p></div>
+    </div>
+    <div class="chat-box" id="chat-box"></div>
+    <div class="presets" id="presets">
+      <p class="preset-label">Pick a question to start:</p>
+      <button class="preset-btn" onclick="sendPreset('That IS weird — why would anyone live next to a river that floods every year?')">💭 That IS weird — why live next to a flooding river?</button>
+      <button class="preset-btn" onclick="sendPreset('Maybe the water comes from somewhere else, not local rain?')">🌧️ Maybe the water travels from somewhere else?</button>
+      <button class="preset-btn" onclick="sendPreset('I have no idea, it seems dangerous.')">🤔 I have no idea, it seems dangerous.</button>
+    </div>
+    <div class="chat-input-row">
+      <input id="chat-input" class="chat-input" placeholder="Ask Zara anything... (中文也可以！)" onkeydown="if(event.key==='Enter')sendMsg()"/>
+      <button id="btn-send" class="btn-send" onclick="sendMsg()" disabled>↑</button>
+    </div>
+    <div class="rounds-note" id="rounds-note">Round 1 of 3</div>
+  </div>
+</div>
+
+<!-- ══ FRAMEWORK ══ -->
+<div id="screen-framework" class="screen">
+  <div style="font-size:3rem;margin-bottom:4px">🌳</div>
+  <div class="fw-title">You did it, Yoyo!</div>
+  <div class="fw-badge">✨ Mesopotamia — Complete</div>
+  <p class="fw-sub">Here's the chain you built, piece by piece:</p>
+  <div class="chain" id="chain"></div>
+  <div class="fw-question" id="fw-question">
+    <h3>Does it matter today? 🤔</h3>
+    <p>The writing system invented here — cuneiform — where do you think it went next?<br><br>
+    <em style="color:var(--dim)">Think about this one outside the game. Maybe ask someone you know 😊</em></p>
+  </div>
+  <button class="btn-replay" onclick="replayGame()">🗺️ Explore Again</button>
+</div>
+
+<script>
+// ═══════════════════════════════════
+//  CONSTANTS
+// ═══════════════════════════════════
+const WORLD_W = 5000;
+const SPEED   = 5;
+const PROX    = 170;
+const ANCHOR  = 0.38;
+
+// ═══════════════════════════════════
+//  PIECE DATA
+// ═══════════════════════════════════
+const IMG = {
+  babylonMap:     'https://upload.wikimedia.org/wikipedia/commons/b/bc/The_Babylonian_map_of_the_world%2C_from_Sippar%2C_Mesopotamia..JPG',
+  fertileMap:     'https://upload.wikimedia.org/wikipedia/commons/5/50/Fertile_Crescent_Mesopotamian_map.png',
+  euphratesArt:   'https://upload.wikimedia.org/wikipedia/commons/7/74/A_View_of_Hit%2C_Euphrates_Art.IWMART2352.jpg',
+  euphratesNow:   'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Euphrates_River_%281%29.JPG/1280px-Euphrates_River_%281%29.JPG',
+  agriInlay:      'https://upload.wikimedia.org/wikipedia/commons/0/0f/Inlay_fragments_agricultural_scenes_ED_Ashmolean.jpg',
+  ziggurat:       'https://upload.wikimedia.org/wikipedia/commons/9/95/Great_Ziggurat_of_Ur.JPG',
+  cuneiformBM:    'https://upload.wikimedia.org/wikipedia/commons/9/94/BM%3B_ANE_-_RM_55%2C_Cuneiform_Tablets_Display.1.JPG',
+  cuneiformTablet:'https://upload.wikimedia.org/wikipedia/commons/7/7e/Cuneiform_Writing_on_Clay_Tablet.jpg',
+};
+
+const ALL_PIECES = [
+  // ── GEO ── clustered x:200-420, staggered heights
+  { bigId:'geo', id:'geo_text',    type:'text',    x:200, bottom:88,  emoji:'📖', title:'Where is this place?',
+    body:`Two great rivers flow through a dry land.
+    Every year, they <span class="kw" onclick="toggleKw(this)">flood<span class="kw-tip">洪水 · 泛滥</span></span>
+    — and no one can stop them. They come with no warning and sweep over everything.
+    This land sits between two rivers: the <em>Tigris</em> and the <em>Euphrates</em>.` },
+
+  { bigId:'geo', id:'geo_gallery', type:'gallery', x:280, bottom:130, emoji:'🖼️', title:'Then & Now',
+    images:[
+      { url:IMG.babylonMap, cap:'The Babylonian Map of the World, ~600 BCE — Babylon at the center, surrounded by ocean', tag:'ANCIENT' },
+      { url:IMG.fertileMap, cap:'The Fertile Crescent — the green zone where two rivers made civilization possible', tag:'MAP' },
+    ]},
+
+  { bigId:'geo', id:'geo_video',   type:'video',   x:350, bottom:100, emoji:'🎬', title:'The Mesopotamians',
+    videoId:'sohXPx_XZ6Y', start:0, channel:'Crash Course',
+    ctx:'Crash Course World History #3 — geography, rivers, and how civilization began.' },
+
+  { bigId:'geo', id:'geo_map',     type:'map',     x:420, bottom:115, emoji:'🗺️', title:'Find It On The Map' },
+
+  // ── CLIMATE ── clustered x:1200-1350, staggered heights
+  { bigId:'climate', id:'climate_text',    type:'text',    x:1200, bottom:100, emoji:'📖', title:"What's the weather like?",
+    body:`Almost no <span class="kw" onclick="toggleKw(this)">rainfall<span class="kw-tip">降雨量</span></span>
+    here. The sun beats down for most of the year.
+    Without the rivers, nothing could grow — not a single blade of grass.
+    And yet, every year without fail, the floods come.` },
+
+  { bigId:'climate', id:'climate_gallery', type:'gallery', x:1280, bottom:88,  emoji:'🖼️', title:'The Harsh Land',
+    images:[
+      { url:IMG.euphratesArt, cap:'The Euphrates at Hit, Iraq — a 1916 painting of the vast, dry landscape', tag:'HISTORICAL' },
+      { url:IMG.euphratesNow, cap:'The Euphrates today — still dry desert on both banks, just as 5,000 years ago', tag:'TODAY' },
+    ]},
+
+  { bigId:'climate', id:'climate_video',   type:'video',   x:1350, bottom:125, emoji:'🎬', title:'The Sumerians — Fall of the First Cities',
+    videoId:'d2lJUOv0hLA', start:0, channel:'Fall of Civilizations',
+    ctx:'How the world\'s first cities rose in this harsh, flood-prone landscape.' },
+
+  // ── NATURE ── clustered x:2200-2300, staggered heights
+  { bigId:'nature', id:'nature_text',    type:'text',    x:2200, bottom:88,  emoji:'📖', title:'What does the land look like?',
+    body:`When the floods pull back, they leave behind rich, dark
+    <span class="kw" onclick="toggleKw(this)">mud<span class="kw-tip">淤泥 · 肥沃的泥土</span></span>.
+    In this mud, seeds grow faster than almost anywhere else on Earth.
+    But first, someone had to figure out how to control the water...` },
+
+  { bigId:'nature', id:'nature_video',   type:'video',   x:2260, bottom:100, emoji:'🎬', title:'The Agricultural Revolution',
+    videoId:'Yocja_N5s1I', start:0, channel:'Crash Course',
+    ctx:'Crash Course World History #1 — how humans learned to farm, and why it changed everything.' },
+
+  { bigId:'nature', id:'nature_gallery', type:'gallery', x:2300, bottom:120, emoji:'🖼️', title:'Farming Then & Now',
+    images:[
+      { url:IMG.agriInlay, cap:'Agricultural scenes carved in shell — Kish, Mesopotamia, ~2750-2600 BCE (Ashmolean Museum)', tag:'ANCIENT' },
+    ]},
+
+  // ── CULTURE ── clustered x:3200-3350, staggered heights
+  { bigId:'culture', id:'culture_text',    type:'text',    x:3200, bottom:110, emoji:'📖', title:'What did people create here?',
+    body:`They built towers that reached toward the sky — not to live in, but to get closer to their gods.
+    And somewhere in this city, someone picked up a piece of clay and made
+    <span class="kw" onclick="toggleKw(this)">cuneiform<span class="kw-tip">楔形文字 · wedge-shaped writing</span></span>
+    marks the world had never seen before.` },
+
+  { bigId:'culture', id:'culture_gallery', type:'gallery', x:3280, bottom:88,  emoji:'🖼️', title:'Temples & Writing',
+    images:[
+      { url:IMG.ziggurat, cap:'The Great Ziggurat of Ur, Iraq — built around 2100 BCE, still standing today', tag:'TODAY' },
+      { url:IMG.cuneiformTablet, cap:'Cuneiform writing on a clay tablet — the world\'s first writing system', tag:'ANCIENT' },
+      { url:IMG.cuneiformBM, cap:'Cuneiform tablets at the British Museum — including the Epic of Gilgamesh', tag:'MUSEUM' },
+    ]},
+
+  { bigId:'culture', id:'culture_video',   type:'video',   x:3350, bottom:130, emoji:'🎬', title:'Ziggurats & Writing',
+    videoId:'sohXPx_XZ6Y', start:420, channel:'Crash Course',
+    ctx:'Crash Course Mesopotamia — ziggurats, the world\'s first cities, and the invention of writing.' },
+
+  // ── ZARA ──
+  { bigId:'zara', id:'zara', type:'zara', x:4500, bottom:88, emoji:'📜', title:'Talk to Zara' },
+];
+
+const BIG_PIECES = [
+  { id:'geo',     emoji:'🌍', label:'Geo',     subIds:['geo_text','geo_gallery','geo_video','geo_map'] },
+  { id:'climate', emoji:'☀️', label:'Climate', subIds:['climate_text','climate_gallery','climate_video'] },
+  { id:'nature',  emoji:'🌱', label:'Nature',  subIds:['nature_text','nature_gallery','nature_video'] },
+  { id:'culture', emoji:'🏛️', label:'Culture', subIds:['culture_text','culture_gallery','culture_video'] },
+];
+
+const CHAIN_DATA = [
+  { icon:'🏔️', label:'Origin', desc:'Snow melts in distant mountains every spring' },
+  { icon:'🌊', label:'Two Rivers', desc:'Tigris & Euphrates carry the melt-water south' },
+  { icon:'💧', label:'Annual Floods', desc:'Every year, the rivers flood the dry plains' },
+  { icon:'🌱', label:'Fertile Soil', desc:'Floodwaters leave behind rich, dark mud — perfect for seeds' },
+  { icon:'🌾', label:'Farming', desc:'People farmed the fertile land and controlled the water with canals' },
+  { icon:'🏙️', label:'Food Surplus', desc:'More food than one family needs → people can specialize in other work' },
+  { icon:'🏛️', label:'Cities', desc:'Specialists gather → the world\'s first cities are born' },
+  { icon:'📜', label:'Writing', desc:'Cities need records → cuneiform, the world\'s first writing system' },
+];
+
+
+// ═══════════════════════════════════
+//  STATE
+// ═══════════════════════════════════
+const S = {
+  yoyoX:200, dir:1, walking:false,
+  collected: new Set(),
+  galleryIdx: {},
+  zaraRound:0, history:[], sending:false,
+  keys:{ ArrowLeft:false, ArrowRight:false },
+  nearbyId:null, raf:null,
+  leafletLoaded:false, leafletMap:null,
+};
+
+// ═══════════════════════════════════
+//  INIT
+// ═══════════════════════════════════
+(function init(){
+  buildCollectibles();
+  buildHud();
+  showGame();
+})();
+
+// ═══════════════════════════════════
+//  SCREENS
+// ═══════════════════════════════════
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('screen-'+id).classList.add('active');
+}
+function showGame(){
+  showScreen('game');
+  if(!S.raf){ startLoop(); }
+  document.addEventListener('keydown', onKey);
+  document.addEventListener('keyup',   offKey);
+}
+
+// ═══════════════════════════════════
+//  BUILD COLLECTIBLES
+// ═══════════════════════════════════
+function buildCollectibles(){
+  const fg = document.getElementById('fg-layer');
+  ALL_PIECES.forEach(p=>{
+    const el = document.createElement('div');
+    el.className = 'collect-item' + (p.type==='zara' ? ' zara-item locked' : '');
+    el.id = 'ci-'+p.id;
+    el.style.left = p.x+'px';
+    el.style.bottom = (p.bottom||88)+'px';
+    el.innerHTML = `<div class="ci-orb">${p.emoji}</div>`;
+    el.onclick = () => triggerPiece(p.id);
+    fg.appendChild(el);
+  });
+}
+
+function buildHud(){
+  const wrap = document.getElementById('hud-right');
+  BIG_PIECES.forEach(bp=>{
+    const div = document.createElement('div');
+    div.className = 'bp-hud';
+    div.id = 'bp-'+bp.id;
+    div.innerHTML = `<span class="bp-emoji">${bp.emoji}</span>
+      <div class="bp-dots">${bp.subIds.map(sid=>`<div class="bp-dot" id="dot-${sid}"></div>`).join('')}</div>`;
+    wrap.appendChild(div);
+  });
+}
+
+// ═══════════════════════════════════
+//  GAME LOOP
+// ═══════════════════════════════════
+function startLoop(){ if(S.raf) cancelAnimationFrame(S.raf); loop(); }
+
+function loop(){
+  S.raf = requestAnimationFrame(loop);
+  let moved = false;
+  if(S.keys.ArrowLeft  && S.yoyoX > 60)         { S.yoyoX -= SPEED; S.dir=-1; moved=true; }
+  if(S.keys.ArrowRight && S.yoyoX < WORLD_W-60)  { S.yoyoX += SPEED; S.dir= 1; moved=true; }
+  S.walking = moved;
+
+  const vw = window.innerWidth;
+  const camX = Math.max(0, Math.min(WORLD_W-vw, S.yoyoX - vw*ANCHOR));
+
+  document.getElementById('bg-layer').style.transform  = `translateX(${-camX*0.3}px)`;
+  document.getElementById('mid-layer').style.transform = `translateX(${-camX*0.6}px)`;
+  document.getElementById('fg-layer').style.transform  = `translateX(${-camX}px)`;
+
+  const yoyo = document.getElementById('yoyo-el');
+  yoyo.style.left = (S.yoyoX - camX)+'px';
+  yoyo.classList.toggle('walking', S.walking);
+  yoyo.classList.toggle('face-left', S.dir===-1);
+
+  // Proximity check
+  let nearDist = Infinity, nearId = null;
+  ALL_PIECES.forEach(p=>{
+    const dist = Math.abs(S.yoyoX - p.x);
+    const el = document.getElementById('ci-'+p.id);
+    if(!el) return;
+    const done = S.collected.has(p.id);
+    const zaraLocked = p.type==='zara' && !allBigPiecesComplete();
+    // nearby glow only for uncollected items
+    el.classList.toggle('nearby', dist < PROX && !done && !zaraLocked);
+    el.classList.toggle('done', done);
+    if(p.type==='zara'){
+      el.classList.toggle('locked', zaraLocked);
+    }
+    // SPACE target: nearest piece regardless of done, only skip locked Zara
+    if(dist < nearDist && !zaraLocked){ nearDist=dist; nearId=p.id; }
+  });
+  S.nearbyId = nearDist < PROX ? nearId : null;
+}
+
+// ═══════════════════════════════════
+//  KEYBOARD
+// ═══════════════════════════════════
+function onKey(e){
+  if(e.key==='ArrowLeft'||e.key==='ArrowRight'){ S.keys[e.key]=true; e.preventDefault(); }
+  if(e.key===' ' && S.nearbyId){ e.preventDefault(); triggerPiece(S.nearbyId); }
+}
+function offKey(e){ if(e.key in S.keys) S.keys[e.key]=false; }
+
+function triggerPiece(id){
+  const p = ALL_PIECES.find(x=>x.id===id);
+  if(!p) return;
+  if(p.type==='zara'){
+    if(!allBigPiecesComplete()) return; // still locked
+    initZara(); return;
+  }
+  openCard(p); // always openable, even if already collected
+}
+
+// ═══════════════════════════════════
+//  CARD MODAL
+// ═══════════════════════════════════
+function openCard(p){
+  const done = S.collected.has(p.id);
+  let inner = '';
+
+  if(p.type==='text'){
+    inner = `<div class="card-type-badge">📖 TEXT FRAGMENT</div>
+      <span class="card-emoji">${p.emoji}</span>
+      <h2 class="card-title">${p.title}</h2>
+      <p class="card-body">${p.body}</p>
+      <p class="card-hint">💡 Click underlined words for Chinese</p>`;
+  }
+  else if(p.type==='gallery'){
+    const idx = S.galleryIdx[p.id] || 0;
+    const img = p.images[idx];
+    const dots = p.images.map((_,i)=>`<div class="g-dot${i===idx?' active':''}"></div>`).join('');
+    inner = `<div class="card-type-badge">🖼️ IMAGE GALLERY</div>
+      <h2 class="card-title">${p.title}</h2>
+      <div class="gallery-wrap">
+        <img class="gallery-img" src="${img.url}" alt="${img.cap}" loading="eager" onerror="this.style.opacity='.3';this.alt='Image failed to load'"/>
+        <div class="gallery-tag">${img.tag}</div>
+      </div>
+      <div class="gallery-nav">
+        <button class="gallery-btn" onclick="navGallery('${p.id}',-1)" ${idx===0?'disabled':''}>‹</button>
+        <div class="gallery-cap">${img.cap}</div>
+        <button class="gallery-btn" onclick="navGallery('${p.id}',1)" ${idx===p.images.length-1?'disabled':''}>›</button>
+      </div>
+      <div class="gallery-dots">${dots}</div>`;
+  }
+  else if(p.type==='video'){
+    const thumb = `https://img.youtube.com/vi/${p.videoId}/hqdefault.jpg`;
+    const ytUrl = `https://www.youtube.com/watch?v=${p.videoId}${p.start?'&t='+p.start:''}`;
+    inner = `<div class="card-type-badge">🎬 VIDEO</div>
+      <h2 class="card-title">${p.title}</h2>
+      <div class="yt-preview" onclick="window.open('${ytUrl}','_blank')">
+        <img class="yt-thumb" src="${thumb}" alt="${p.title}">
+        <div class="yt-play"><div class="yt-play-btn"></div></div>
+      </div>
+      <div class="yt-meta">
+        <div class="yt-ch">📺 ${p.channel}</div>
+      </div>
+      <a class="yt-watch" href="${ytUrl}" target="_blank" rel="noopener">Watch on YouTube →</a>
+      <p class="video-ctx">${p.ctx}</p>`;
+  }
+  else if(p.type==='map'){
+    inner = `<div class="card-type-badge">🗺️ REAL MAP</div>
+      <h2 class="card-title">${p.title}</h2>
+      <p class="map-note">This is where Mesopotamia was — in what is now Iraq, between the Tigris and Euphrates rivers.</p>
+      <div id="leaflet-map"></div>`;
+  }
+
+  const actions = `<div class="card-actions">
+    ${done
+      ? '<div class="already-badge">✓ Already in your collection!</div>'
+      : `<button class="btn-collect" onclick="collectPiece('${p.id}','${p.emoji}','${p.bigId}')">I've got this piece! ✓</button>`}
+    <button class="btn-secondary" onclick="closeCard()">Keep exploring</button>
+  </div>`;
+
+  document.getElementById('card-inner').innerHTML = inner + actions;
+  document.getElementById('card-modal').classList.add('active');
+
+  if(p.type==='map') initLeaflet();
+}
+
+function navGallery(pieceId, dir){
+  const p = ALL_PIECES.find(x=>x.id===pieceId);
+  if(!p) return;
+  const cur = S.galleryIdx[pieceId] || 0;
+  S.galleryIdx[pieceId] = Math.max(0, Math.min(p.images.length-1, cur+dir));
+  // Re-render gallery section only
+  const done = S.collected.has(pieceId);
+  openCard(p); // re-open with new index (card stays open)
+}
+
+function closeCard(){
+  document.getElementById('card-modal').classList.remove('active');
+  // Destroy leaflet map if exists to prevent re-init issues
+  if(S.leafletMap){ S.leafletMap.remove(); S.leafletMap=null; }
+}
+
+function toggleKw(el){ el.classList.toggle('open'); }
+
+function collectPiece(id, emoji, bigId){
+  closeCard();
+  S.collected.add(id);
+
+  // Update HUD dot
+  const dot = document.getElementById('dot-'+id);
+  if(dot) dot.classList.add('filled');
+
+  // Flying animation
+  fly(emoji, id);
+
+  // Check if big piece complete
+  const bp = BIG_PIECES.find(b=>b.id===bigId);
+  if(bp && bp.subIds.every(sid=>S.collected.has(sid))){
+    document.getElementById('bp-'+bigId)?.classList.add('complete');
+    setTimeout(()=>showToast(bp.emoji+' '+capitalize(bigId)+' complete! ✨'), 700);
+  }
+}
+
+function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
+
+function fly(emoji, id){
+  const dot = document.getElementById('dot-'+id);
+  const r = dot ? dot.getBoundingClientRect() : null;
+  const el = document.createElement('div');
+  el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2.2rem;z-index:300;pointer-events:none;transition:all .8s cubic-bezier(.4,0,.2,1);';
+  el.textContent = emoji;
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    if(r) el.style.cssText = `position:fixed;top:${r.top+r.height/2}px;left:${r.left+r.width/2}px;transform:translate(-50%,-50%) scale(.3);font-size:2.2rem;z-index:300;pointer-events:none;opacity:0;transition:all .8s cubic-bezier(.4,0,.2,1);`;
+    setTimeout(()=>el.remove(), 850);
+  }));
+}
+
+function showToast(msg){
+  const t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t);
+  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
+  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),400); }, 2600);
+}
+
+// ═══════════════════════════════════
+//  LEAFLET MAP
+// ═══════════════════════════════════
+function initLeaflet(){
+  if(S.leafletMap) return;
+  if(!window.L){
+    const css = document.createElement('link');
+    css.rel='stylesheet'; css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
+    document.head.appendChild(css);
+    const js = document.createElement('script');
+    js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    js.onload = createMap;
+    document.head.appendChild(js);
+  } else { createMap(); }
+}
+
+function createMap(){
+  const el = document.getElementById('leaflet-map');
+  if(!el || S.leafletMap) return;
+  S.leafletMap = L.map(el, { zoomControl:true, scrollWheelZoom:false }).setView([32.5, 44.5], 6);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
+    attribution:'© OpenStreetMap contributors', maxZoom:10
+  }).addTo(S.leafletMap);
+
+  const icon = (emoji,color) => L.divIcon({
+    html:`<div style="font-size:1.4rem;background:${color};border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.5)">${emoji}</div>`,
+    iconSize:[32,32], iconAnchor:[16,16], className:''
+  });
+
+  const sites = [
+    { pos:[30.9622,46.1033], emoji:'🏛️', name:'Ur (Ziggurat of Ur)' },
+    { pos:[32.5363,44.4206], emoji:'🏙️', name:'Babylon' },
+    { pos:[36.3589,43.1532], emoji:'🏛️', name:'Nineveh' },
+    { pos:[32.1233,45.2306], emoji:'🏙️', name:'Nippur' },
+    { pos:[31.3225,45.6380], emoji:'🌊', name:'Lagash' },
+  ];
+  sites.forEach(s=>L.marker(s.pos, {icon:icon(s.emoji,'rgba(240,192,64,.9)')})
+    .addTo(S.leafletMap).bindPopup(`<b>${s.name}</b>`));
+
+  // River labels
+  L.marker([34.5, 43.8], {icon:icon('🌊','rgba(26,74,110,.9)')})
+    .addTo(S.leafletMap).bindPopup('<b>Euphrates River →</b>');
+  L.marker([35.8, 43.5], {icon:icon('🌊','rgba(26,74,110,.9)')})
+    .addTo(S.leafletMap).bindPopup('<b>Tigris River →</b>');
+}
+
+// ═══════════════════════════════════
+//  BIG PIECES CHECK
+// ═══════════════════════════════════
+function allBigPiecesComplete(){
+  return BIG_PIECES.every(bp=>bp.subIds.every(sid=>S.collected.has(sid)));
+}
+
+// ═══════════════════════════════════
+//  ZARA
+// ═══════════════════════════════════
+function initZara(){
+  if(!allBigPiecesComplete()) return;
+  S.zaraRound=0; S.history=[]; S.sending=false;
+  document.getElementById('chat-box').innerHTML='';
+  document.getElementById('presets').style.display='flex';
+  document.getElementById('rounds-note').textContent='Round 1 of 3';
+  document.getElementById('btn-send').disabled=true;
+  document.getElementById('chat-input').value='';
+  showScreen('zara');
+  addMsg('zara',"You've been exploring for a while... I've been watching! 👀 Can I ask you something weird? You found out this land is super dry ☀️ — almost no rain. But ALSO floods every year 🌊. Does that make sense to you?");
+}
+
+function addMsg(role, text){
+  const box = document.getElementById('chat-box');
+  const div = document.createElement('div');
+  div.className='msg '+role;
+  div.innerHTML=`<div class="msg-av">${role==='zara'?'🧭':'🌟'}</div><div class="msg-bubble">${text}</div>`;
+  box.appendChild(div); box.scrollTop=box.scrollHeight;
+}
+function showTyping(){
+  const box=document.getElementById('chat-box');
+  const div=document.createElement('div');
+  div.className='msg zara'; div.id='typing';
+  div.innerHTML=`<div class="msg-av">🧭</div><div class="msg-bubble"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  box.appendChild(div); box.scrollTop=box.scrollHeight;
+}
+function removeTyping(){ const t=document.getElementById('typing'); if(t) t.remove(); }
+
+function sendPreset(q){
+  document.getElementById('chat-input').value=q;
+  document.getElementById('btn-send').disabled=false;
+  sendMsg();
+}
+
+async function sendMsg(){
+  if(S.sending||S.zaraRound>=3) return;
+  const inp=document.getElementById('chat-input');
+  const text=inp.value.trim(); if(!text) return;
+  inp.value='';
+  document.getElementById('presets').style.display='none';
+  document.getElementById('btn-send').disabled=true;
+  S.sending=true; S.zaraRound++;
+  addMsg('user',text); S.history.push({role:'user',content:text}); showTyping();
+  try{
+    // Call our Vercel serverless proxy — API key stays server-side
+    const res=await fetch('/api/zara',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({messages:S.history})
+    });
+    const data=await res.json(); removeTyping();
+    if(!res.ok) throw new Error(data.error||`Server error ${res.status}`);
+    const reply=data.reply;
+    S.history.push({role:'assistant',content:reply}); addMsg('zara',reply);
+    const note=document.getElementById('rounds-note');
+    if(S.zaraRound>=3){ note.textContent='🌟 The full picture is ready!'; document.getElementById('btn-send').disabled=true; }
+    else{ note.textContent=`Round ${S.zaraRound+1} of 3`; document.getElementById('btn-send').disabled=false; }
+    if(reply.includes("I think you're ready to see the big picture now")) setTimeout(unlockZara,1800);
+  }catch(err){
+    removeTyping();
+    addMsg('zara',`Hmm, something went wrong — ${err.message}. Try again?`);
+    S.zaraRound--; S.history.pop(); document.getElementById('btn-send').disabled=false;
+  }
+  S.sending=false;
+}
+
+function unlockZara(){
+  S.collected.add('zara');
+  setTimeout(showFramework, 500);
+}
+
+// ═══════════════════════════════════
+//  FRAMEWORK
+// ═══════════════════════════════════
+function showFramework(){
+  showScreen('framework');
+  const chain=document.getElementById('chain'); chain.innerHTML='';
+  CHAIN_DATA.forEach((node,i)=>{
+    if(i>0){ const a=document.createElement('div'); a.className='chain-arrow'; a.textContent='↑'; chain.appendChild(a); setTimeout(()=>a.classList.add('revealed'),(i*200)+100); }
+    const el=document.createElement('div'); el.className='chain-node';
+    el.innerHTML=`<div class="chain-icon">${node.icon}</div><div><div class="chain-label">${node.label}</div><div class="chain-desc">${node.desc}</div></div>`;
+    chain.appendChild(el); setTimeout(()=>el.classList.add('revealed'),i*200);
+  });
+  setTimeout(()=>document.getElementById('fw-question').classList.add('revealed'),CHAIN_DATA.length*200+300);
+}
+
+// ═══════════════════════════════════
+//  REPLAY
+// ═══════════════════════════════════
+function replayGame(){
+  S.collected=new Set(); S.zaraRound=0; S.history=[]; S.yoyoX=200;
+  document.querySelectorAll('.bp-dot').forEach(d=>d.classList.remove('filled'));
+  document.querySelectorAll('.bp-hud').forEach(d=>d.classList.remove('complete'));
+  showGame();
+}
+</script>
+</body>
+</html>

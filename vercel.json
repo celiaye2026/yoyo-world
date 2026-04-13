@@ -1,0 +1,6 @@
+{
+  "rewrites": [
+    { "source": "/mesopotamia", "destination": "/mesopotamia/index.html" },
+    { "source": "/", "destination": "/index.html" }
+  ]
+}

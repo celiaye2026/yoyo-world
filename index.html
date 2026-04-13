@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Yoyo's Learning World</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #110904;
+            --gold: #F0C040;
+            --sand: #D4A96A;
+            --terracotta: #C1440E;
+            --text: #F5ECD7;
+            --dim: #A89070;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: 'Nunito', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Stars */
+        #stars { position: fixed; inset: 0; pointer-events: none; z-index: 0; }
+        .star {
+            position: absolute; background: white; border-radius: 50%;
+            animation: twinkle 3s infinite alternate;
+        }
+        @keyframes twinkle { from{opacity:.1} to{opacity:.85} }
+
+        /* Hero */
+        .hero {
+            position: relative; z-index: 1;
+            text-align: center;
+            padding: 60px 24px 40px;
+            background: radial-gradient(ellipse at 50% 0%, #1a2a5e 0%, #110904 65%);
+        }
+        .hero-char { display: inline-block; animation: bounce 1.3s ease-in-out infinite; margin-bottom: 18px; }
+        @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-9px)} }
+
+        .hero h1 {
+            font-family: 'Cinzel', serif; color: var(--gold);
+            font-size: clamp(1.8rem, 5vw, 2.8rem);
+            text-shadow: 0 0 30px rgba(240,192,64,.45);
+            margin-bottom: 10px;
+        }
+        .hero p { color: var(--dim); font-size: 1rem; line-height: 1.65; max-width: 460px; margin: 0 auto; }
+
+        /* Timeline / civilization cards */
+        main {
+            position: relative; z-index: 1;
+            max-width: 700px; margin: 0 auto;
+            padding: 20px 20px 60px;
+        }
+        .section-title {
+            font-family: 'Cinzel', serif; color: var(--sand);
+            font-size: .85rem; letter-spacing: 3px; text-transform: uppercase;
+            margin-bottom: 22px; text-align: center;
+        }
+
+        .civ-list { display: flex; flex-direction: column; gap: 16px; }
+
+        .civ-card {
+            border-radius: 20px; padding: 24px 22px;
+            display: flex; align-items: center; gap: 20px;
+            transition: transform .25s, box-shadow .25s;
+            text-decoration: none; color: var(--text);
+            position: relative; overflow: hidden;
+        }
+        .civ-card.available {
+            background: linear-gradient(135deg, #2d1a08, #1e1005);
+            border: 2px solid var(--gold);
+            cursor: pointer;
+        }
+        .civ-card.available:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(240,192,64,.3);
+        }
+        .civ-card.locked {
+            background: rgba(255,255,255,.03);
+            border: 2px solid rgba(255,255,255,.08);
+            cursor: default; opacity: .55;
+        }
+
+        .civ-icon {
+            font-size: 2.8rem; flex-shrink: 0;
+            width: 66px; height: 66px;
+            display: flex; align-items: center; justify-content: center;
+            border-radius: 16px;
+        }
+        .civ-card.available .civ-icon {
+            background: rgba(240,192,64,.12);
+            border: 1px solid rgba(240,192,64,.35);
+        }
+        .civ-card.locked .civ-icon {
+            background: rgba(255,255,255,.05);
+            border: 1px solid rgba(255,255,255,.1);
+        }
+
+        .civ-info { flex: 1; }
+        .civ-name {
+            font-family: 'Cinzel', serif; font-size: 1.18rem;
+            color: var(--gold); margin-bottom: 4px;
+        }
+        .civ-card.locked .civ-name { color: var(--dim); }
+        .civ-desc { font-size: .88rem; color: var(--dim); line-height: 1.55; }
+
+        .civ-badge {
+            font-size: .78rem; font-weight: 700; padding: 5px 14px;
+            border-radius: 50px; flex-shrink: 0;
+        }
+        .badge-play {
+            background: linear-gradient(135deg, var(--gold), var(--terracotta));
+            color: white; animation: badgePulse 2s ease-in-out infinite;
+        }
+        @keyframes badgePulse {
+            0%,100%{ box-shadow: 0 0 0 0 rgba(240,192,64,.4); }
+            50%    { box-shadow: 0 0 0 8px rgba(240,192,64,0); }
+        }
+        .badge-soon { background: rgba(255,255,255,.06); color: var(--dim); border: 1px solid rgba(255,255,255,.1); }
+
+        /* Footer */
+        footer {
+            position: relative; z-index: 1;
+            text-align: center; padding: 30px 20px 40px;
+            color: var(--dim); font-size: .8rem; line-height: 1.8;
+        }
+        footer span { color: var(--gold); }
+    </style>
+</head>
+<body>
+
+<div id="stars"></div>
+
+<!-- Hero -->
+<header class="hero">
+    <div class="hero-char">
+        <svg width="70" height="92" viewBox="0 0 70 92">
+            <defs>
+                <clipPath id="shirt-clip-hub">
+                    <rect x="21" y="36" width="28" height="24" rx="8"/>
+                </clipPath>
+            </defs>
+            <!-- backpack -->
+            <rect x="37" y="32" width="12" height="16" rx="3.5" fill="#7a3b10" opacity=".85"/>
+
+            <!-- Body + arms (behind hair) -->
+            <rect x="21" y="36" width="28" height="24" rx="8" fill="#ff85c0"/>
+            <g clip-path="url(#shirt-clip-hub)">
+                <rect x="0" y="36" width="70" height="4" fill="#111"/>
+                <rect x="0" y="44" width="70" height="4" fill="#111"/>
+                <rect x="0" y="52" width="70" height="4" fill="#111"/>
+            </g>
+            <line x1="21" y1="40" x2="8"  y2="52" stroke="#ff85c0" stroke-width="6" stroke-linecap="round"/>
+            <line x1="49" y1="40" x2="62" y2="52" stroke="#ff85c0" stroke-width="6" stroke-linecap="round"/>
+            <line x1="16" y1="46" x2="11.5" y2="49" stroke="#111" stroke-width="2.2" stroke-linecap="round" opacity=".7"/>
+            <line x1="54" y1="46" x2="58.5" y2="49" stroke="#111" stroke-width="2.2" stroke-linecap="round" opacity=".7"/>
+
+            <!-- 童花头 两侧发：椭圆，底部到肩 y≈50 -->
+            <ellipse cx="15" cy="32" rx="8" ry="18" fill="#2d1a06"/>
+            <ellipse cx="55" cy="32" rx="8" ry="18" fill="#2d1a06"/>
+
+            <!-- Face -->
+            <circle cx="35" cy="24" r="16" fill="#ffbe80"/>
+
+            <!-- 童花头 发帽：直刘海 + 圆弧顶 -->
+            <path d="M19 19 L51 19 Q51 6 35 6 Q19 6 19 19 Z" fill="#2d1a06"/>
+
+            <!-- Glasses -->
+            <rect x="23"   y="21.5" width="9.5" height="7" rx="2" fill="none" stroke="#3a3a3a" stroke-width="1.8"/>
+            <rect x="37"   y="21.5" width="9.5" height="7" rx="2" fill="none" stroke="#3a3a3a" stroke-width="1.8"/>
+            <line x1="32.5" y1="25" x2="37"   y2="25"   stroke="#3a3a3a" stroke-width="1.5"/>
+            <line x1="23"   y1="25" x2="19.5" y2="27"   stroke="#3a3a3a" stroke-width="1.4" stroke-linecap="round"/>
+            <line x1="46.5" y1="25" x2="50"   y2="27"   stroke="#3a3a3a" stroke-width="1.4" stroke-linecap="round"/>
+            <!-- Eyes -->
+            <circle cx="27.75" cy="25" r="2.3" fill="#3d2206"/>
+            <circle cx="41.75" cy="25" r="2.3" fill="#3d2206"/>
+            <circle cx="28.8"  cy="24" r="1"   fill="white"/>
+            <circle cx="42.8"  cy="24" r="1"   fill="white"/>
+            <!-- Smile -->
+            <path d="M28 30 Q35 36 42 30" stroke="#3d2206" stroke-width="2" fill="none" stroke-linecap="round"/>
+            <!-- Legs -->
+            <rect x="22" y="58" width="10" height="18" rx="5" fill="#8b6914"/>
+            <rect x="38" y="58" width="10" height="18" rx="5" fill="#8b6914"/>
+        </svg>
+    </div>
+    <h1>Yoyo's Learning World</h1>
+    <p>Travel through time, collect the pieces, and discover how ancient civilizations shaped the world we live in today.</p>
+</header>
+
+<!-- Civilizations -->
+<main>
+    <p class="section-title">Choose Your Civilization</p>
+    <div class="civ-list">
+
+        <!-- Level 1: Mesopotamia — AVAILABLE -->
+        <a class="civ-card available" href="mesopotamia/index.html">
+            <div class="civ-icon">🏛️</div>
+            <div class="civ-info">
+                <div class="civ-name">Mesopotamia</div>
+                <div class="civ-desc">The world's first cities rose here, between two great rivers.<br>
+                    <em style="color:#d4a96a">BC Grade 7 · Ancient World</em></div>
+            </div>
+            <div class="civ-badge badge-play">▶ Play</div>
+        </a>
+
+        <!-- Level 2: Ancient Egypt — COMING SOON -->
+        <div class="civ-card locked">
+            <div class="civ-icon">🪬</div>
+            <div class="civ-info">
+                <div class="civ-name">Ancient Egypt</div>
+                <div class="civ-desc">Pyramids, pharaohs, and the gift of the Nile.</div>
+            </div>
+            <div class="civ-badge badge-soon">🔒 Soon</div>
+        </div>
+
+        <!-- Level 3: Ancient Greece — COMING SOON -->
+        <div class="civ-card locked">
+            <div class="civ-icon">🏺</div>
+            <div class="civ-info">
+                <div class="civ-name">Ancient Greece</div>
+                <div class="civ-desc">Democracy, philosophy, and the Olympic Games.</div>
+            </div>
+            <div class="civ-badge badge-soon">🔒 Soon</div>
+        </div>
+
+        <!-- Level 4: Ancient China — COMING SOON -->
+        <div class="civ-card locked">
+            <div class="civ-icon">🐉</div>
+            <div class="civ-info">
+                <div class="civ-name">Ancient China</div>
+                <div class="civ-desc">Silk Roads, the Great Wall, and four great inventions.</div>
+            </div>
+            <div class="civ-badge badge-soon">🔒 Soon</div>
+        </div>
+
+        <!-- Level 5: Ancient India — COMING SOON -->
+        <div class="civ-card locked">
+            <div class="civ-icon">🪷</div>
+            <div class="civ-info">
+                <div class="civ-name">Ancient India</div>
+                <div class="civ-desc">The Indus Valley and a civilization ahead of its time.</div>
+            </div>
+            <div class="civ-badge badge-soon">🔒 Soon</div>
+        </div>
+
+    </div>
+</main>
+
+<footer>
+    Made with ❤️ for <span>Yoyo</span> · Aligned with BC Grade 7 Social Studies
+</footer>
+
+<script>
+    // Stars
+    const c = document.getElementById('stars');
+    for (let i = 0; i < 100; i++) {
+        const s = document.createElement('div');
+        s.className = 'star';
+        const sz = Math.random() * 2.5 + 0.5;
+        s.style.cssText = `width:${sz}px;height:${sz}px;top:${Math.random()*100}%;left:${Math.random()*100}%;
+            animation-delay:${Math.random()*4}s;animation-duration:${2+Math.random()*3}s;`;
+        c.appendChild(s);
+    }
+</script>
+</body>
+</html>

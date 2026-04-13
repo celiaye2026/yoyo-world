@@ -168,8 +168,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
 .chain-arrow.revealed{opacity:.65;}
 .fw-question{margin-top:26px;background:rgba(123,104,238,.08);border:1px solid rgba(123,104,238,.3);border-radius:15px;padding:18px 22px;max-width:460px;width:100%;text-align:center;opacity:0;transition:opacity .6s;}
 .fw-question.revealed{opacity:1;}
-.fw-question h3{color:var(--purple);font-family:'Cinzel',serif;font-size:.97rem;margin-bottom:8px;}
-.fw-question p{color:var(--dim);font-size:.88rem;line-height:1.6;}
+.fw-question h3{color:#5a3fb5;font-family:'Cinzel',serif;font-size:.97rem;margin-bottom:8px;}
+.fw-question p{color:#c8a878;font-size:.88rem;line-height:1.6;}
+.fw-question em{color:#b89050!important;}
 .btn-replay{margin-top:26px;background:transparent;border:2px solid var(--gold);border-radius:50px;padding:11px 34px;color:var(--gold);font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:background .2s,color .2s;}
 .btn-replay:hover{background:var(--gold);color:var(--bg);}
 </style>
@@ -528,6 +529,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
     <em style="color:var(--dim)">Think about this one outside the game. Maybe ask someone you know 😊</em></p>
   </div>
   <button class="btn-replay" onclick="replayGame()">🗺️ Explore Again</button>
+  <a class="btn-replay" href="../index.html" style="margin-top:12px;text-decoration:none;display:inline-block;">🌍 World Map</a>
 </div>
 
 <script>
@@ -1017,9 +1019,14 @@ async function sendMsg(){
     const reply=data.reply;
     S.history.push({role:'assistant',content:reply}); addMsg('zara',reply);
     const note=document.getElementById('rounds-note');
-    if(S.zaraRound>=5){ note.textContent='🌟 The full picture is ready!'; document.getElementById('btn-send').disabled=true; }
-    else{ note.textContent=`Round ${S.zaraRound+1} of 5`; document.getElementById('btn-send').disabled=false; }
-    if(reply.includes("I think you're ready to see the big picture now")) setTimeout(unlockZara,1800);
+    if(S.zaraRound>=5){
+      note.innerHTML='🌟 <button onclick="unlockZara()" style="background:linear-gradient(135deg,var(--gold),var(--terra));border:none;border-radius:50px;padding:9px 22px;color:white;font-family:Nunito,sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;margin-left:8px;">I\'m done with Mesopotamia! →</button>';
+      document.getElementById('btn-send').disabled=true;
+    } else{
+      note.textContent=`Round ${S.zaraRound+1} of 5`;
+      document.getElementById('btn-send').disabled=false;
+    }
+    if(reply.includes("I think you're ready to see the big picture now") && S.zaraRound<5) setTimeout(unlockZara,1800);
   }catch(err){
     removeTyping();
     addMsg('zara',`Hmm, something went wrong — ${err.message}. Try again?`);
@@ -1030,7 +1037,7 @@ async function sendMsg(){
 
 function unlockZara(){
   S.collected.add('zara');
-  setTimeout(showFramework, 500);
+  showFramework();
 }
 
 // ═══════════════════════════════════

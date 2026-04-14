@@ -81,8 +81,9 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
   font-size:.76rem;color:var(--sand);white-space:nowrap;pointer-events:none;z-index:99;}
 .kw.open{color:var(--gold);}.kw.open .kw-tip{display:block;}
 .card-actions{display:flex;flex-direction:column;gap:9px;margin-top:16px;}
-.btn-collect{background:linear-gradient(135deg,var(--gold),var(--terra));border:none;border-radius:50px;padding:11px 28px;color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;transition:transform .2s;}
-.btn-collect:hover{transform:translateY(-2px);}
+.btn-collect{background:linear-gradient(135deg,var(--gold),var(--terra));border:none;border-radius:50px;padding:11px 28px;color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;transition:transform .2s,opacity .3s;}
+.btn-collect:hover:not(:disabled){transform:translateY(-2px);}
+.btn-collect:disabled{background:rgba(255,255,255,.1);color:var(--dim);cursor:default;opacity:.7;}
 .btn-secondary{background:transparent;border:1px solid rgba(212,169,106,.35);border-radius:50px;padding:9px 24px;color:var(--dim);font-family:'Nunito',sans-serif;font-size:.88rem;cursor:pointer;transition:color .2s,border-color .2s;}
 .btn-secondary:hover{color:var(--gold);border-color:var(--gold);}
 .already-badge{background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);border-radius:50px;padding:9px 20px;color:var(--gold);font-size:.85rem;}
@@ -717,6 +718,7 @@ const S = {
   keys:{ ArrowLeft:false, ArrowRight:false },
   nearbyId:null, raf:null,
   leafletLoaded:false, leafletMap:null,
+  readTimer:null,
 };
 
 // ═══════════════════════════════════
@@ -896,6 +898,27 @@ function openCard(p){
   document.getElementById('card-modal').classList.add('active');
 
   if(p.type==='map') initLeaflet();
+
+  if(!done){
+    if(S.readTimer){ clearInterval(S.readTimer); S.readTimer=null; }
+    const delays = { text:40, gallery:10, video:120, map:30 };
+    let secs = delays[p.type] || 8;
+    const btn = document.querySelector('.btn-collect');
+    if(btn){
+      btn.disabled = true;
+      btn.textContent = `✋ Read first... (${secs}s)`;
+      S.readTimer = setInterval(()=>{
+        secs--;
+        if(secs<=0){
+          clearInterval(S.readTimer); S.readTimer=null;
+          btn.disabled = false;
+          btn.textContent = "I've got this piece! ✓";
+        } else {
+          btn.textContent = `✋ Read first... (${secs}s)`;
+        }
+      }, 1000);
+    }
+  }
 }
 
 function navGallery(pieceId, dir){
@@ -907,6 +930,7 @@ function navGallery(pieceId, dir){
 }
 
 function closeCard(){
+  if(S.readTimer){ clearInterval(S.readTimer); S.readTimer=null; }
   document.getElementById('card-modal').classList.remove('active');
   if(S.leafletMap){ S.leafletMap.remove(); S.leafletMap=null; }
 }
@@ -1062,11 +1086,14 @@ async function sendMsg(){
     S.history.push({role:'assistant',content:reply}); addMsg('zara',reply);
     const note=document.getElementById('rounds-note');
     if(S.zaraRound>=20){
-      note.innerHTML='🌟 <button onclick="unlockZara()" style="background:linear-gradient(135deg,var(--gold),var(--terra));border:none;border-radius:50px;padding:9px 22px;color:white;font-family:Nunito,sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;margin-left:8px;">I\'m done with Ancient China! →</button>';
       document.getElementById('btn-send').disabled=true;
     } else{
-      note.textContent=`Round ${S.zaraRound+1} of 20`;
       document.getElementById('btn-send').disabled=false;
+      if(S.zaraRound>=5){
+        note.innerHTML='🌟 <button onclick="unlockZara()" style="background:linear-gradient(135deg,var(--gold),var(--terra));border:none;border-radius:50px;padding:9px 22px;color:white;font-family:Nunito,sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;margin-left:8px;">I\'m done with Ancient China! →</button>';
+      } else{
+        note.textContent=`Round ${S.zaraRound+1} of 20`;
+      }
     }
     if(reply.includes("I think you're ready to see the big picture now") && S.zaraRound<20) setTimeout(unlockZara,1800);
   }catch(err){

@@ -762,6 +762,8 @@ function loop(){
 //  KEYBOARD
 // ═══════════════════════════════════
 function onKey(e){
+  // Only handle game controls when the game screen is active
+  if(!document.getElementById('screen-game').classList.contains('active')) return;
   if(e.key==='ArrowLeft'||e.key==='ArrowRight'){ S.keys[e.key]=true; e.preventDefault(); }
   if(e.key===' ' && S.nearbyId){ e.preventDefault(); triggerPiece(S.nearbyId); }
 }

@@ -1047,7 +1047,7 @@ function showFramework(){
   showScreen('framework');
   const chain=document.getElementById('chain'); chain.innerHTML='';
   CHAIN_DATA.forEach((node,i)=>{
-    if(i>0){ const a=document.createElement('div'); a.className='chain-arrow'; a.textContent='↑'; chain.appendChild(a); setTimeout(()=>a.classList.add('revealed'),(i*200)+100); }
+    if(i>0){ const a=document.createElement('div'); a.className='chain-arrow'; a.textContent='↓'; chain.appendChild(a); setTimeout(()=>a.classList.add('revealed'),(i*200)+100); }
     const el=document.createElement('div'); el.className='chain-node';
     el.innerHTML=`<div class="chain-icon">${node.icon}</div><div><div class="chain-label">${node.label}</div><div class="chain-desc">${node.desc}</div></div>`;
     chain.appendChild(el); setTimeout(()=>el.classList.add('revealed'),i*200);

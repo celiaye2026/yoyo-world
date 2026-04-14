@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/mesopotamia", "destination": "/mesopotamia/index.html" },
+    { "source": "/china", "destination": "/china/index.html" },
     { "source": "/", "destination": "/index.html" }
   ]
 }

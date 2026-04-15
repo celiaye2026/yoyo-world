@@ -20,13 +20,14 @@ export default async function handler(req, res) {
   const CARD_SYSTEM = `Generate a beautiful explorer certificate for a girl named Yoyo who just completed the Mesopotamia level with a score of ${score}/5.
 
 Include:
-1. A fancy title (e.g. "Guardian of the Two Rivers", "Keeper of Cuneiform Secrets")
-2. A short poetic description of her achievement (2-3 sentences, warm and encouraging, not cheesy)
-3. One genuinely interesting fun fact about Mesopotamia she might not know yet
+1. A creative, magical title (e.g. "Guardian of the Two Rivers", "Keeper of Cuneiform Secrets", "Daughter of the Fertile Crescent")
+2. A short poetic description of her achievement (2 sentences, warm and encouraging, a little magical)
+3. Exactly 3 key facts she learned, each starting with a fitting emoji and under 15 words — make them vivid and surprising
+4. One genuinely fascinating fun fact she probably doesn't know yet (1-2 sentences)
 
-Keep it magical, warm, and age-appropriate for a Grade 7 girl.
+Keep it magical, colorful, and age-appropriate for a Grade 7 girl who loves learning.
 Return ONLY this JSON, no other text, no markdown backticks:
-{"title": "...", "description": "...", "fun_fact": "..."}`;
+{"title": "...", "description": "...", "key_facts": ["🌊 ...", "🏛️ ...", "📜 ..."], "fun_fact": "..."}`;
 
   try {
     const upstream = await fetch('https://api.anthropic.com/v1/messages', {
@@ -38,7 +39,7 @@ Return ONLY this JSON, no other text, no markdown backticks:
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
-        max_tokens: 500,
+        max_tokens: 700,
         system: CARD_SYSTEM,
         messages: [{ role: 'user', content: 'Generate the certificate now.' }],
       }),

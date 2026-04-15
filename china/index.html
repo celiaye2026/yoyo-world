@@ -901,7 +901,7 @@ function openCard(p){
 
   if(!done){
     if(S.readTimer){ clearInterval(S.readTimer); S.readTimer=null; }
-    const delays = { text:40, gallery:10, video:120, map:30 };
+    const delays = { text:10, gallery:10, video:10, map:10 };
     let secs = delays[p.type] || 8;
     const btn = document.querySelector('.btn-collect');
     if(btn){

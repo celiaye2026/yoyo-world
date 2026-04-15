@@ -174,6 +174,24 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
 .fw-question em{color:#d4b87a!important;}
 .btn-replay{margin-top:26px;background:transparent;border:2px solid var(--gold);border-radius:50px;padding:11px 34px;color:var(--gold);font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:background .2s,color .2s;}
 .btn-replay:hover{background:var(--gold);color:var(--bg);}
+
+/* ── GATE ANIMAL ── */
+#gate-overlay{position:fixed;inset:0;z-index:80;display:none;justify-content:center;align-items:center;background:rgba(6,3,1,.78);backdrop-filter:blur(5px);}
+#gate-overlay.active{display:flex;}
+.gate-box{background:linear-gradient(145deg,#2d1a08,#1a0d04);border:2px solid var(--gold);border-radius:24px;padding:28px 26px 24px;max-width:400px;width:93%;text-align:center;box-shadow:0 0 60px rgba(240,192,64,.25);}
+.gate-animal{margin-bottom:10px;display:flex;justify-content:center;}
+.gate-q{color:var(--text);font-size:.97rem;line-height:1.65;margin-bottom:18px;}
+.gate-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
+.gate-response{color:var(--gold);font-family:'Cinzel',serif;font-size:.9rem;min-height:1.4em;margin-top:6px;}
+.gate-input-row{display:flex;gap:8px;margin-top:10px;}
+@keyframes gJumpUp  {from{opacity:0;transform:translateY(60px)} to{opacity:1;transform:translateY(0)}}
+@keyframes gSlideR  {from{opacity:0;transform:translateX(-80px)}to{opacity:1;transform:translateX(0)}}
+@keyframes gJumpDown{from{opacity:0;transform:translateY(-60px)}to{opacity:1;transform:translateY(0)}}
+@keyframes gFadeOut {from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(20px)}}
+.anim-jump-up  {animation:gJumpUp   .35s ease-out;}
+.anim-slide-right{animation:gSlideR .35s ease-out;}
+.anim-jump-down{animation:gJumpDown .35s ease-out;}
+.anim-fade-out {animation:gFadeOut  .5s ease-out forwards;}
 </style>
 </head>
 <body>
@@ -531,6 +549,21 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
   </div>
   <button class="btn-replay" onclick="replayGame()">🗺️ Explore Again</button>
   <a class="btn-replay" href="../index.html" style="margin-top:12px;text-decoration:none;display:inline-block;">🌍 World Map</a>
+  <button class="btn-collect" onclick="window.location.href='quiz.html'" style="margin-top:14px;">Take the Quiz! →</button>
+</div>
+
+<!-- ══ GATE ANIMAL ══ -->
+<div id="gate-overlay">
+  <div class="gate-box" id="gate-box">
+    <div class="gate-animal" id="gate-animal-svg"></div>
+    <p class="gate-q" id="gate-q"></p>
+    <div class="gate-opts" id="gate-opts"></div>
+    <div class="gate-input-row">
+      <input id="gate-input" class="chat-input" placeholder="Or say something..." style="flex:1" onkeydown="if(event.key==='Enter')submitGateInput()"/>
+      <button class="btn-send" onclick="submitGateInput()">→</button>
+    </div>
+    <div class="gate-response" id="gate-response"></div>
+  </div>
 </div>
 
 <script>
@@ -638,6 +671,110 @@ const BIG_PIECES = [
   { id:'culture', emoji:'🏛️', label:'Culture', subIds:['culture_text','culture_gallery','culture_video'] },
 ];
 
+// ═══════════════════════════════════
+//  GATE ANIMALS
+// ═══════════════════════════════════
+const GATE_ANIMALS = {
+  geo: {
+    emoji:'🐟', name:'Fish', gateX:300, entranceAnim:'jump-up',
+    question:"Hey! Before you cross — have you ever seen a river flood? 🌊",
+    options:["Yes, it's scary!","Never...","What's a flood?"],
+    response:"Interesting! Go ahead, explorer! 🌊",
+    svg:`<svg width="130" height="130" viewBox="0 0 130 130">
+      <path d="M0 95 Q16 88 32 95 Q48 102 64 95 Q80 88 96 95 Q112 102 130 95 L130 130 L0 130Z" fill="#1a5a8a" opacity=".55"/>
+      <path d="M15 120 Q5 98 18 105 Q12 88 28 100Z" fill="#2878c0"/>
+      <ellipse cx="72" cy="82" rx="42" ry="26" fill="#3090d8"/>
+      <ellipse cx="72" cy="88" rx="28" ry="15" fill="#70c0f0" opacity=".45"/>
+      <path d="M42 72 Q56 62 70 72" fill="#2070b0"/>
+      <circle cx="98" cy="74" r="11" fill="white"/>
+      <circle cx="100" cy="74" r="7" fill="#1a3055"/>
+      <circle cx="103" cy="71" r="3" fill="white"/>
+      <path d="M107 82 Q111 87 107 87" stroke="#1a3055" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+      <circle cx="118" cy="60" r="5" fill="none" stroke="#70c0f0" stroke-width="1.8" opacity=".7"/>
+      <circle cx="125" cy="48" r="3.5" fill="none" stroke="#70c0f0" stroke-width="1.5" opacity=".5"/>
+    </svg>`
+  },
+  climate: {
+    emoji:'🐪', name:'Camel', gateX:1200, entranceAnim:'slide-right',
+    question:"This land is SO dry... how do you think people survived here? 🏜️",
+    options:["They found water somewhere","They ate cacti?","No idea!"],
+    response:"Good thinking! The desert holds many secrets. 🏜️",
+    svg:`<svg width="130" height="130" viewBox="0 0 130 130">
+      <rect x="18" y="108" width="12" height="20" rx="5" fill="#a05810"/>
+      <rect x="38" y="112" width="11" height="16" rx="5" fill="#a05810"/>
+      <rect x="76" y="112" width="11" height="16" rx="5" fill="#a05810"/>
+      <rect x="96" y="108" width="12" height="20" rx="5" fill="#a05810"/>
+      <ellipse cx="62" cy="90" rx="46" ry="28" fill="#d07820"/>
+      <ellipse cx="44" cy="66" rx="20" ry="24" fill="#c87018"/>
+      <ellipse cx="72" cy="60" rx="18" ry="22" fill="#d07820"/>
+      <rect x="84" y="62" width="18" height="34" rx="9" fill="#c87018"/>
+      <ellipse cx="100" cy="50" rx="18" ry="14" fill="#d07820"/>
+      <circle cx="110" cy="44" r="8" fill="white"/>
+      <circle cx="112" cy="44" r="5" fill="#3d2206"/>
+      <circle cx="114" cy="42" r="2" fill="white"/>
+      <ellipse cx="116" cy="56" rx="6" ry="5" fill="#b06010"/>
+      <path d="M108 58 Q113 62 118 58" stroke="#8a4010" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <path d="M84 44 Q88 38 94 38 Q90 35 88 38" stroke="#c87018" stroke-width="3" fill="none" stroke-linecap="round"/>
+    </svg>`
+  },
+  nature: {
+    emoji:'🐂', name:'Bull', gateX:2200, entranceAnim:'slide-right',
+    question:"See all these fields? What made this soil so good for farming? 🌾",
+    options:["The river floods!","People worked hard","Magic?"],
+    response:"Moo-velous answer! Go explore! 🌾",
+    svg:`<svg width="130" height="130" viewBox="0 0 130 130">
+      <rect x="20" y="108" width="13" height="20" rx="6" fill="#9a7040"/>
+      <rect x="40" y="112" width="12" height="16" rx="5" fill="#9a7040"/>
+      <rect x="76" y="112" width="12" height="16" rx="5" fill="#9a7040"/>
+      <rect x="96" y="108" width="13" height="20" rx="6" fill="#9a7040"/>
+      <ellipse cx="62" cy="88" rx="48" ry="30" fill="#c8a060"/>
+      <ellipse cx="62" cy="96" rx="35" ry="18" fill="#d8b070" opacity=".5"/>
+      <rect x="78" y="60" width="20" height="36" rx="10" fill="#c8a060"/>
+      <ellipse cx="92" cy="54" rx="22" ry="17" fill="#c8a060"/>
+      <path d="M74 44 Q68 30 62 38" stroke="#a07840" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <path d="M110 44 Q116 30 122 38" stroke="#a07840" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <circle cx="86" cy="48" r="8.5" fill="white"/>
+      <circle cx="88" cy="48" r="5.5" fill="#3d2206"/>
+      <circle cx="90" cy="46" r="2" fill="white"/>
+      <ellipse cx="100" cy="62" rx="8" ry="6" fill="#b08848"/>
+      <circle cx="100" cy="59" r="3" fill="#8a6030" opacity=".5"/>
+      <path d="M90 64 Q95 68 100 64" stroke="#8a6030" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+    </svg>`
+  },
+  culture: {
+    emoji:'🐈', name:'Cat', gateX:3200, entranceAnim:'jump-down',
+    question:"This temple is huge... why do you think people built it so tall? ✨",
+    options:["To reach the gods","To show off","I wonder too!"],
+    response:"Purrfect! The gods are watching. ✨",
+    svg:`<svg width="130" height="130" viewBox="0 0 130 130">
+      <path d="M75 20 Q80 5 90 12 L88 30Z" fill="#e07030"/>
+      <path d="M105 20 Q112 5 118 14 L112 32Z" fill="#e07030"/>
+      <ellipse cx="95" cy="42" rx="25" ry="22" fill="#e87838"/>
+      <ellipse cx="95" cy="46" rx="18" ry="14" fill="#f8d0a0" opacity=".6"/>
+      <circle cx="84" cy="38" r="9" fill="white"/>
+      <circle cx="86" cy="38" r="6" fill="#2d1a06"/>
+      <circle cx="88" cy="36" r="2.5" fill="white"/>
+      <circle cx="106" cy="38" r="9" fill="white"/>
+      <circle cx="108" cy="38" r="6" fill="#2d1a06"/>
+      <circle cx="110" cy="36" r="2.5" fill="white"/>
+      <path d="M88 50 Q95 55 102 50" stroke="#c05020" stroke-width="2.2" fill="none" stroke-linecap="round"/>
+      <ellipse cx="95" cy="54" rx="4" ry="3" fill="#e07868"/>
+      <line x1="78" y1="50" x2="60" y2="48" stroke="#c07030" stroke-width="1.5" opacity=".7"/>
+      <line x1="78" y1="53" x2="60" y2="54" stroke="#c07030" stroke-width="1.5" opacity=".7"/>
+      <line x1="112" y1="50" x2="130" y2="48" stroke="#c07030" stroke-width="1.5" opacity=".7"/>
+      <line x1="112" y1="53" x2="130" y2="54" stroke="#c07030" stroke-width="1.5" opacity=".7"/>
+      <ellipse cx="62" cy="88" rx="38" ry="30" fill="#e07030"/>
+      <ellipse cx="62" cy="96" rx="26" ry="18" fill="#f8d0a0" opacity=".5"/>
+      <rect x="20" y="108" width="11" height="18" rx="5" fill="#c05820"/>
+      <rect x="38" y="112" width="10" height="14" rx="5" fill="#c05820"/>
+      <rect x="74" y="112" width="10" height="14" rx="5" fill="#c05820"/>
+      <rect x="90" y="108" width="11" height="18" rx="5" fill="#c05820"/>
+      <path d="M92 65 Q80 95 70 120" stroke="#e07030" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <path d="M70 120 Q58 128 55 118" stroke="#e07030" stroke-width="8" fill="none" stroke-linecap="round"/>
+    </svg>`
+  }
+};
+
 const CHAIN_DATA = [
   { icon:'🏔️', label:'Origin', desc:'Snow melts in distant mountains every spring' },
   { icon:'🌊', label:'Two Rivers', desc:'Tigris & Euphrates carry the melt-water south' },
@@ -662,6 +799,9 @@ const S = {
   nearbyId:null, raf:null,
   leafletLoaded:false, leafletMap:null,
   readTimer:null,
+  gateCleared: new Set(JSON.parse(sessionStorage.getItem('yoyo_gates_cleared')||'[]')),
+  gateActive: false,
+  activeGateId: null,
 };
 
 // ═══════════════════════════════════
@@ -724,8 +864,10 @@ function startLoop(){ if(S.raf) cancelAnimationFrame(S.raf); loop(); }
 function loop(){
   S.raf = requestAnimationFrame(loop);
   let moved = false;
-  if(S.keys.ArrowLeft  && S.yoyoX > 60)         { S.yoyoX -= SPEED; S.dir=-1; moved=true; }
-  if(S.keys.ArrowRight && S.yoyoX < WORLD_W-60)  { S.yoyoX += SPEED; S.dir= 1; moved=true; }
+  if(!S.gateActive){
+    if(S.keys.ArrowLeft  && S.yoyoX > 60)         { S.yoyoX -= SPEED; S.dir=-1; moved=true; }
+    if(S.keys.ArrowRight && S.yoyoX < WORLD_W-60)  { S.yoyoX += SPEED; S.dir= 1; moved=true; }
+  }
   S.walking = moved;
 
   const vw = window.innerWidth;
@@ -758,6 +900,15 @@ function loop(){
     if(dist < nearDist && !zaraLocked){ nearDist=dist; nearId=p.id; }
   });
   S.nearbyId = nearDist < PROX ? nearId : null;
+
+  // Gate animal check — only on game screen, not while gate is active
+  if(!S.gateActive && document.getElementById('screen-game').classList.contains('active')){
+    for(const [zoneId, gate] of Object.entries(GATE_ANIMALS)){
+      if(!S.gateCleared.has(zoneId) && Math.abs(S.yoyoX - gate.gateX) < 200){
+        showGateAnimal(zoneId); break;
+      }
+    }
+  }
 }
 
 // ═══════════════════════════════════
@@ -848,7 +999,7 @@ function openCard(p){
 
   if(!done){
     if(S.readTimer){ clearInterval(S.readTimer); S.readTimer=null; }
-    const delays = { text:40, gallery:10, video:120, map:30 };
+    const delays = { text:10, gallery:10, video:10, map:10 };
     let secs = delays[p.type] || 8;
     const btn = document.querySelector('.btn-collect');
     if(btn){
@@ -1092,6 +1243,70 @@ function replayGame(){
   document.querySelectorAll('.bp-dot').forEach(d=>d.classList.remove('filled'));
   document.querySelectorAll('.bp-hud').forEach(d=>d.classList.remove('complete'));
   showGame();
+}
+
+// ═══════════════════════════════════
+//  GATE ANIMALS
+// ═══════════════════════════════════
+function showGateAnimal(zoneId){
+  S.gateActive = true;
+  S.activeGateId = zoneId;
+  S.keys.ArrowLeft = false; S.keys.ArrowRight = false;
+  const gate = GATE_ANIMALS[zoneId];
+  const box = document.getElementById('gate-box');
+
+  // Inject SVG
+  document.getElementById('gate-animal-svg').innerHTML = gate.svg;
+  document.getElementById('gate-q').textContent = gate.question;
+  document.getElementById('gate-response').textContent = '';
+  document.getElementById('gate-input').value = '';
+
+  // Inject option buttons
+  const optsEl = document.getElementById('gate-opts');
+  optsEl.innerHTML = gate.options.map(opt =>
+    `<button class="preset-btn" onclick="gateAnimalRespond()">${opt}</button>`
+  ).join('');
+
+  // Entrance animation
+  box.className = 'gate-box anim-' + gate.entranceAnim;
+
+  // Show overlay
+  document.getElementById('gate-overlay').classList.add('active');
+}
+
+function gateAnimalRespond(){
+  const zoneId = S.activeGateId;
+  const gate = GATE_ANIMALS[zoneId];
+  const optsEl = document.getElementById('gate-opts');
+  const inputEl = document.getElementById('gate-input');
+
+  // Disable all options
+  optsEl.querySelectorAll('button').forEach(b=>{ b.disabled=true; b.style.opacity='.4'; });
+  inputEl.disabled = true;
+
+  // Show response
+  document.getElementById('gate-response').textContent = gate.response;
+
+  // Close after 1.5s and mark cleared
+  setTimeout(()=>{
+    const box = document.getElementById('gate-box');
+    box.classList.add('anim-fade-out');
+    setTimeout(()=>{
+      document.getElementById('gate-overlay').classList.remove('active');
+      box.classList.remove('anim-fade-out');
+      S.gateActive = false;
+      S.activeGateId = null;
+      // Persist cleared state
+      S.gateCleared.add(zoneId);
+      sessionStorage.setItem('yoyo_gates_cleared', JSON.stringify([...S.gateCleared]));
+    }, 520);
+  }, 1500);
+}
+
+function submitGateInput(){
+  const val = document.getElementById('gate-input').value.trim();
+  if(!val) return;
+  gateAnimalRespond();
 }
 </script>
 </body>

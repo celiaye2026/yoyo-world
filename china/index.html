@@ -171,6 +171,28 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
 .fw-question em{color:#d4b87a!important;}
 .btn-replay{margin-top:26px;background:transparent;border:2px solid var(--gold);border-radius:50px;padding:11px 34px;color:var(--gold);font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:background .2s,color .2s;}
 .btn-replay:hover{background:var(--gold);color:var(--bg);}
+
+/* ── GATE ANIMALS ── */
+#gate-overlay{display:none;position:fixed;inset:0;z-index:80;background:rgba(4,6,12,.88);backdrop-filter:blur(6px);justify-content:center;align-items:center;}
+#gate-overlay.active{display:flex;}
+.gate-box{background:linear-gradient(145deg,#0e1a0a,#091224);border:2px solid var(--gold);border-radius:28px;padding:32px 28px 26px;max-width:440px;width:93%;text-align:center;position:relative;box-shadow:0 0 60px rgba(240,192,64,.25);animation:cardUp .35s ease;}
+.gate-animal-svg{margin:0 auto 14px;display:block;}
+.gate-q{font-family:'Cinzel',serif;color:var(--gold);font-size:1.08rem;margin-bottom:18px;line-height:1.5;}
+.gate-opts{display:flex;flex-direction:column;gap:9px;}
+.gate-opt{background:rgba(240,192,64,.08);border:1.5px solid rgba(240,192,64,.3);border-radius:14px;padding:11px 16px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.93rem;cursor:pointer;transition:background .2s,border-color .2s,transform .15s;text-align:left;}
+.gate-opt:hover{background:rgba(240,192,64,.18);border-color:var(--gold);transform:translateX(4px);}
+.gate-response{margin-top:16px;padding:14px 18px;border-radius:14px;font-size:.92rem;line-height:1.6;display:none;}
+.gate-response.correct{background:rgba(80,200,80,.12);border:1px solid rgba(80,200,80,.35);color:#90e890;}
+.gate-response.partial{background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);color:var(--gold);}
+.gate-continue{margin-top:14px;background:linear-gradient(135deg,var(--gold),var(--terra));border:none;border-radius:50px;padding:10px 28px;color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:.92rem;cursor:pointer;display:none;transition:transform .2s;}
+.gate-continue:hover{transform:translateY(-2px);}
+@keyframes gJumpUp{0%{transform:translateY(120%) scale(.7)}60%{transform:translateY(-18px) scale(1.08)}100%{transform:translateY(0) scale(1)}}
+@keyframes gSlideR{0%{transform:translateX(-160%) scale(.7)}70%{transform:translateX(12px) scale(1.05)}100%{transform:translateX(0) scale(1)}}
+@keyframes gJumpDown{0%{transform:translateY(-120%) scale(.7)}60%{transform:translateY(18px) scale(1.08)}100%{transform:translateY(0) scale(1)}}
+@keyframes gFadeOut{0%{transform:translateY(0) scale(1);opacity:1}100%{transform:translateY(-40px) scale(.6);opacity:0}}
+.anim-jump-up .gate-animal-svg{animation:gJumpUp .6s cubic-bezier(.34,1.56,.64,1) forwards;}
+.anim-slide-right .gate-animal-svg{animation:gSlideR .6s cubic-bezier(.34,1.56,.64,1) forwards;}
+.anim-jump-down .gate-animal-svg{animation:gJumpDown .6s cubic-bezier(.34,1.56,.64,1) forwards;}
 </style>
 </head>
 <body>
@@ -536,6 +558,17 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
   <div class="content-card" id="card-inner"></div>
 </div>
 
+<!-- ══ GATE OVERLAY ══ -->
+<div id="gate-overlay">
+  <div class="gate-box" id="gate-box">
+    <div id="gate-animal-svg-wrap"></div>
+    <div class="gate-q" id="gate-q"></div>
+    <div class="gate-opts" id="gate-opts"></div>
+    <div class="gate-response" id="gate-response"></div>
+    <button class="gate-continue" id="gate-continue" onclick="gateAnimalContinue()">Continue exploring! →</button>
+  </div>
+</div>
+
 <!-- ══ ZARA ══ -->
 <div id="screen-zara" class="screen">
   <div class="zara-wrap">
@@ -570,7 +603,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
     <p>You just explored Mesopotamia AND Ancient China. Both had flooding rivers. Both had fertile soil. Both grew food and built cities. Both invented writing.<br><br>
     <em>Why do you think rivers were SO important for starting civilizations? Think about it outside the game — maybe ask someone you know 🌊</em></p>
   </div>
-  <button class="btn-replay" onclick="replayGame()">🗺️ Explore Again</button>
+  <a class="btn-replay" href="quiz.html" style="margin-top:26px;text-decoration:none;display:inline-block;background:linear-gradient(135deg,var(--gold),var(--terra));color:white;border-color:transparent;">📝 Take the Quiz! →</a>
+  <button class="btn-replay" onclick="replayGame()" style="margin-top:12px;">🗺️ Explore Again</button>
   <a class="btn-replay" href="../index.html" style="margin-top:12px;text-decoration:none;display:inline-block;">🌍 World Map</a>
 </div>
 
@@ -708,6 +742,180 @@ const CHAIN_DATA = [
 ];
 
 // ═══════════════════════════════════
+//  GATE ANIMALS
+// ═══════════════════════════════════
+const GATE_ANIMALS = {
+  geo: {
+    emoji:'🐉', label:'Long Long the Dragon', gateX:300, entranceAnim:'jump-up',
+    svg:`<svg class="gate-animal-svg" width="110" height="110" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+      <defs><radialGradient id="dragonGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#FFD700" stop-opacity=".3"/><stop offset="100%" stop-color="#FFD700" stop-opacity="0"/></radialGradient></defs>
+      <circle cx="55" cy="55" r="52" fill="url(#dragonGlow)"/>
+      <!-- Body -->
+      <ellipse cx="55" cy="65" rx="28" ry="20" fill="#2d8a3e"/>
+      <!-- Head -->
+      <circle cx="55" cy="38" r="22" fill="#3aaa50"/>
+      <!-- Snout -->
+      <ellipse cx="55" cy="52" rx="10" ry="7" fill="#2d8a3e"/>
+      <!-- Eyes -->
+      <circle cx="46" cy="34" r="5" fill="#fff"/><circle cx="47" cy="34" r="3" fill="#1a0a00"/>
+      <circle cx="64" cy="34" r="5" fill="#fff"/><circle cx="65" cy="34" r="3" fill="#1a0a00"/>
+      <!-- Pupils shine -->
+      <circle cx="48" cy="33" r="1" fill="#fff"/><circle cx="66" cy="33" r="1" fill="#fff"/>
+      <!-- Nostrils -->
+      <circle cx="51" cy="51" r="2" fill="#1a5a28"/><circle cx="59" cy="51" r="2" fill="#1a5a28"/>
+      <!-- Whiskers -->
+      <line x1="55" y1="48" x2="28" y2="42" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
+      <line x1="55" y1="48" x2="82" y2="42" stroke="#FFD700" stroke-width="2" stroke-linecap="round"/>
+      <!-- Horns -->
+      <path d="M48,17 Q44,6 47,2" stroke="#FFD700" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <path d="M62,17 Q66,6 63,2" stroke="#FFD700" stroke-width="3" fill="none" stroke-linecap="round"/>
+      <!-- Scales on body -->
+      <path d="M35,60 Q42,54 55,58 Q68,54 75,60" stroke="#1a5a28" stroke-width="1.5" fill="none"/>
+      <path d="M32,70 Q42,64 55,68 Q68,64 78,70" stroke="#1a5a28" stroke-width="1.5" fill="none"/>
+      <!-- Tail curl -->
+      <path d="M75,72 Q90,68 95,78 Q98,88 88,90 Q80,90 78,82" stroke="#2d8a3e" stroke-width="8" fill="none" stroke-linecap="round"/>
+      <!-- Claws -->
+      <line x1="38" y1="82" x2="30" y2="92" stroke="#1a5a28" stroke-width="3" stroke-linecap="round"/>
+      <line x1="42" y1="84" x2="36" y2="96" stroke="#1a5a28" stroke-width="3" stroke-linecap="round"/>
+      <!-- Pearl -->
+      <circle cx="55" cy="26" r="5" fill="#FFD700" opacity=".8"/>
+      <circle cx="53" cy="24" r="1.5" fill="#fff" opacity=".6"/>
+    </svg>`,
+    question:'The Yellow River floods every year! I guard this zone. Why do you think ancient people stayed near a dangerous river?',
+    options:['The flooding brought rich soil that made crops grow!','They liked the danger and excitement','They had no choice — they were stuck here','Because fish were tasty'],
+    correctIdx:0,
+    responseCorrect:'Exactly! 🌾 You got it! The flood deposits golden silt — loess — that makes the soil incredibly fertile. That\'s why people risked everything to stay near me!',
+    responsePartial:'Interesting thought! 🐉 Actually, the floods deposit rich yellow silt — loess — that makes the soil incredibly fertile for growing millet and rice. The river gives AND takes!',
+  },
+  climate: {
+    emoji:'🐼', label:'Bao Bao the Panda', gateX:1200, entranceAnim:'slide-right',
+    svg:`<svg class="gate-animal-svg" width="110" height="110" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+      <defs><radialGradient id="pandaGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#7B68EE" stop-opacity=".2"/><stop offset="100%" stop-color="#7B68EE" stop-opacity="0"/></radialGradient></defs>
+      <circle cx="55" cy="55" r="52" fill="url(#pandaGlow)"/>
+      <!-- Body -->
+      <ellipse cx="55" cy="72" rx="30" ry="26" fill="#f0f0f0"/>
+      <!-- Black patches on ears -->
+      <circle cx="33" cy="25" r="14" fill="#1a1a1a"/>
+      <circle cx="77" cy="25" r="14" fill="#1a1a1a"/>
+      <circle cx="33" cy="25" r="9" fill="#f0f0f0"/>
+      <circle cx="77" cy="25" r="9" fill="#f0f0f0"/>
+      <!-- Head -->
+      <circle cx="55" cy="45" r="26" fill="#f0f0f0"/>
+      <!-- Eye patches -->
+      <ellipse cx="44" cy="42" rx="9" ry="8" fill="#1a1a1a" transform="rotate(-10,44,42)"/>
+      <ellipse cx="66" cy="42" rx="9" ry="8" fill="#1a1a1a" transform="rotate(10,66,42)"/>
+      <!-- Eyes -->
+      <circle cx="44" cy="42" r="4.5" fill="#fff"/><circle cx="45" cy="42" r="3" fill="#1a1a1a"/>
+      <circle cx="66" cy="42" r="4.5" fill="#fff"/><circle cx="67" cy="42" r="3" fill="#1a1a1a"/>
+      <!-- Eye shine -->
+      <circle cx="46" cy="41" r="1" fill="#fff"/><circle cx="68" cy="41" r="1" fill="#fff"/>
+      <!-- Nose -->
+      <ellipse cx="55" cy="52" rx="5" ry="3.5" fill="#1a1a1a"/>
+      <!-- Mouth -->
+      <path d="M50,56 Q55,62 60,56" stroke="#1a1a1a" stroke-width="2" fill="none" stroke-linecap="round"/>
+      <!-- Arms (black) -->
+      <ellipse cx="30" cy="68" rx="10" ry="16" fill="#1a1a1a" transform="rotate(-15,30,68)"/>
+      <ellipse cx="80" cy="68" rx="10" ry="16" fill="#1a1a1a" transform="rotate(15,80,68)"/>
+      <!-- Bamboo -->
+      <rect x="82" y="30" width="6" height="50" rx="3" fill="#3a8a2a"/>
+      <rect x="84" y="40" width="14" height="4" rx="2" fill="#5ab040" transform="rotate(30,84,40)"/>
+      <rect x="84" y="56" width="14" height="4" rx="2" fill="#5ab040" transform="rotate(-20,84,56)"/>
+      <rect x="84" y="68" width="12" height="4" rx="2" fill="#5ab040" transform="rotate(25,84,68)"/>
+    </svg>`,
+    question:'China is surrounded by mountains, deserts, and oceans. I live in the mountains! What effect do you think this isolation had on Chinese civilization?',
+    options:['China developed its own unique culture without much outside influence','China copied everything from other civilizations','People couldn\'t farm because of the mountains','The isolation made China weak'],
+    correctIdx:0,
+    responseCorrect:'Brilliant! 🐼 Yes! Isolation meant China developed its own writing, art, philosophy, and government — all unique to China. That\'s why Chinese culture is so distinctive!',
+    responsePartial:'Good thinking! 🐼 China\'s natural barriers — mountains, deserts, ocean — meant it developed largely in isolation, creating its own unique writing, philosophy, art, and government style!',
+  },
+  nature: {
+    emoji:'🐂', label:'Tian Tian the Ox', gateX:2200, entranceAnim:'slide-right',
+    svg:`<svg class="gate-animal-svg" width="110" height="110" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+      <defs><radialGradient id="oxGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#D4A96A" stop-opacity=".3"/><stop offset="100%" stop-color="#D4A96A" stop-opacity="0"/></radialGradient></defs>
+      <circle cx="55" cy="55" r="52" fill="url(#oxGlow)"/>
+      <!-- Body -->
+      <ellipse cx="55" cy="75" rx="34" ry="24" fill="#8B5E3C"/>
+      <!-- Neck -->
+      <ellipse cx="55" cy="58" rx="18" ry="16" fill="#9a6a45"/>
+      <!-- Head -->
+      <ellipse cx="55" cy="38" rx="24" ry="20" fill="#9a6a45"/>
+      <!-- Muzzle -->
+      <ellipse cx="55" cy="50" rx="14" ry="10" fill="#c08860"/>
+      <!-- Nostrils -->
+      <circle cx="50" cy="51" r="3" fill="#6a3a1a"/><circle cx="60" cy="51" r="3" fill="#6a3a1a"/>
+      <!-- Eyes -->
+      <circle cx="43" cy="34" r="5.5" fill="#2a1a0a"/><circle cx="44" cy="33" r="1.5" fill="#fff"/>
+      <circle cx="67" cy="34" r="5.5" fill="#2a1a0a"/><circle cx="68" cy="33" r="1.5" fill="#fff"/>
+      <!-- Horns -->
+      <path d="M42,22 Q30,8 25,14" stroke="#c8a060" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M68,22 Q80,8 85,14" stroke="#c8a060" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <!-- Ears -->
+      <ellipse cx="32" cy="30" rx="8" ry="5" fill="#9a6a45" transform="rotate(-30,32,30)"/>
+      <ellipse cx="78" cy="30" rx="8" ry="5" fill="#9a6a45" transform="rotate(30,78,30)"/>
+      <!-- Legs -->
+      <rect x="32" y="90" width="12" height="16" rx="5" fill="#7a5030"/>
+      <rect x="66" y="90" width="12" height="16" rx="5" fill="#7a5030"/>
+      <!-- Tail -->
+      <path d="M85,72 Q100,64 98,80" stroke="#7a5030" stroke-width="4" fill="none" stroke-linecap="round"/>
+      <!-- Yoke/collar - ancient China farm symbol -->
+      <rect x="38" y="52" width="34" height="6" rx="3" fill="#5a3a18" opacity=".6"/>
+      <!-- Millet ears in background -->
+      <line x1="16" y1="30" x2="16" y2="80" stroke="#8a6a20" stroke-width="2.5"/>
+      <ellipse cx="16" cy="26" rx="4" ry="8" fill="#c8a030" opacity=".9"/>
+      <line x1="10" y1="35" x2="16" y2="30" stroke="#8a6a20" stroke-width="1.5"/>
+      <line x1="22" y1="35" x2="16" y2="30" stroke="#8a6a20" stroke-width="1.5"/>
+    </svg>`,
+    question:'The Yellow River\'s floods leave behind yellow loess soil. I help farmers plow it! What did ancient Chinese farmers discover they could grow in this soil?',
+    options:['Millet — one of the world\'s earliest farmed crops','Rice only — nothing else grew','Wheat and barley like Mesopotamia','Nothing — the soil was too salty'],
+    correctIdx:0,
+    responseCorrect:'Yes! 🌾 Millet! Ancient Chinese farmers discovered millet could grow beautifully in loess soil — this was one of the world\'s first farming revolutions!',
+    responsePartial:'Good guess! 🐂 The loess soil was perfect for growing millet — one of the world\'s earliest cultivated crops. This farming discovery fed growing villages that became the first Chinese cities!',
+  },
+  culture: {
+    emoji:'🐢', label:'Gui Gui the Turtle', gateX:3200, entranceAnim:'jump-down',
+    svg:`<svg class="gate-animal-svg" width="110" height="110" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+      <defs><radialGradient id="turtleGlow" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#F0C040" stop-opacity=".35"/><stop offset="100%" stop-color="#F0C040" stop-opacity="0"/></radialGradient></defs>
+      <circle cx="55" cy="55" r="52" fill="url(#turtleGlow)"/>
+      <!-- Shell base -->
+      <ellipse cx="55" cy="58" rx="34" ry="28" fill="#5a7a20"/>
+      <!-- Shell pattern (scutes) -->
+      <ellipse cx="55" cy="55" rx="28" ry="22" fill="#6a9228"/>
+      <!-- Central hexagon scute -->
+      <polygon points="55,36 66,42 66,56 55,62 44,56 44,42" fill="#4a6818" opacity=".7"/>
+      <!-- Side scutes -->
+      <polygon points="33,44 44,42 44,56 33,58" fill="#4a6818" opacity=".5"/>
+      <polygon points="77,44 66,42 66,56 77,58" fill="#4a6818" opacity=".5"/>
+      <!-- Shell edge highlight -->
+      <ellipse cx="55" cy="58" rx="34" ry="28" fill="none" stroke="#8ab030" stroke-width="2" opacity=".6"/>
+      <!-- Head -->
+      <ellipse cx="55" cy="32" rx="13" ry="11" fill="#7a9a38"/>
+      <!-- Eyes -->
+      <circle cx="49" cy="29" r="4" fill="#1a3a0a"/><circle cx="50" cy="28" r="1.5" fill="#FFD700"/>
+      <circle cx="61" cy="29" r="4" fill="#1a3a0a"/><circle cx="62" cy="28" r="1.5" fill="#FFD700"/>
+      <!-- Mouth -->
+      <path d="M50,36 Q55,40 60,36" stroke="#4a6818" stroke-width="1.5" fill="none"/>
+      <!-- Legs -->
+      <ellipse cx="27" cy="52" rx="10" ry="6" fill="#7a9a38" transform="rotate(-20,27,52)"/>
+      <ellipse cx="83" cy="52" rx="10" ry="6" fill="#7a9a38" transform="rotate(20,83,52)"/>
+      <ellipse cx="30" cy="72" rx="10" ry="6" fill="#7a9a38" transform="rotate(15,30,72)"/>
+      <ellipse cx="80" cy="72" rx="10" ry="6" fill="#7a9a38" transform="rotate(-15,80,72)"/>
+      <!-- Tail -->
+      <path d="M55,85 Q55,96 58,100" stroke="#7a9a38" stroke-width="5" fill="none" stroke-linecap="round"/>
+      <!-- Oracle bone cracks on shell — the key detail! -->
+      <path d="M55,44 L50,50 L55,56 L60,50 Z" stroke="#FFD700" stroke-width="1" fill="none" opacity=".8"/>
+      <line x1="55" y1="36" x2="55" y2="44" stroke="#FFD700" stroke-width="1" opacity=".6"/>
+      <line x1="44" y1="50" x2="50" y2="50" stroke="#FFD700" stroke-width="1" opacity=".6"/>
+      <line x1="60" y1="50" x2="66" y2="50" stroke="#FFD700" stroke-width="1" opacity=".6"/>
+    </svg>`,
+    question:'My shell was used for something VERY important in ancient China! Shang dynasty kings heated shells like mine until they cracked. What did those cracks mean to the people?',
+    options:['The cracks were "answers" from the ancestors/gods to the king\'s questions','They cracked shells to make soup','The cracks told them when to plant crops','The cracks were just decoration'],
+    correctIdx:0,
+    responseCorrect:'Perfect! 🐢 You\'ve learned oracle bone divination! Specialists "read" the cracks as messages from divine ancestors. To record these questions and answers, they invented writing — the ancestor of modern Chinese characters!',
+    responsePartial:'Amazing question! 🐢 The Shang kings believed the cracks were messages from divine ancestors. Recording these questions led them to invent writing — the ancestor of all Chinese characters used today!',
+  },
+};
+
+// ═══════════════════════════════════
 //  STATE
 // ═══════════════════════════════════
 const S = {
@@ -719,6 +927,8 @@ const S = {
   nearbyId:null, raf:null,
   leafletLoaded:false, leafletMap:null,
   readTimer:null,
+  gateCleared: new Set(JSON.parse(sessionStorage.getItem('yoyo_gates_cleared_china')||'[]')),
+  gateActive:false, activeGateId:null,
 };
 
 // ═══════════════════════════════════
@@ -781,8 +991,10 @@ function startLoop(){ if(S.raf) cancelAnimationFrame(S.raf); loop(); }
 function loop(){
   S.raf = requestAnimationFrame(loop);
   let moved = false;
-  if(S.keys.ArrowLeft  && S.yoyoX > 60)         { S.yoyoX -= SPEED; S.dir=-1; moved=true; }
-  if(S.keys.ArrowRight && S.yoyoX < WORLD_W-60)  { S.yoyoX += SPEED; S.dir= 1; moved=true; }
+  if(!S.gateActive){
+    if(S.keys.ArrowLeft  && S.yoyoX > 60)         { S.yoyoX -= SPEED; S.dir=-1; moved=true; }
+    if(S.keys.ArrowRight && S.yoyoX < WORLD_W-60)  { S.yoyoX += SPEED; S.dir= 1; moved=true; }
+  }
   S.walking = moved;
 
   const vw = window.innerWidth;
@@ -812,6 +1024,15 @@ function loop(){
     if(dist < nearDist && !zaraLocked){ nearDist=dist; nearId=p.id; }
   });
   S.nearbyId = nearDist < PROX ? nearId : null;
+
+  // Gate proximity check
+  if(!S.gateActive){
+    for(const [gid, gate] of Object.entries(GATE_ANIMALS)){
+      if(!S.gateCleared.has(gid) && Math.abs(S.yoyoX - gate.gateX) < 200){
+        showGateAnimal(gid); break;
+      }
+    }
+  }
 }
 
 // ═══════════════════════════════════
@@ -971,6 +1192,46 @@ function showToast(msg){
   document.body.appendChild(t);
   requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
   setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),400); }, 2600);
+}
+
+// ═══════════════════════════════════
+//  GATE ANIMALS
+// ═══════════════════════════════════
+function showGateAnimal(gid){
+  S.gateActive = true; S.activeGateId = gid;
+  const gate = GATE_ANIMALS[gid];
+  const overlay = document.getElementById('gate-overlay');
+  const box = document.getElementById('gate-box');
+  box.className = 'gate-box anim-'+gate.entranceAnim;
+  document.getElementById('gate-animal-svg-wrap').innerHTML = gate.svg;
+  document.getElementById('gate-q').textContent = gate.question;
+  const optsEl = document.getElementById('gate-opts');
+  optsEl.innerHTML = gate.options.map((opt,i)=>
+    `<button class="gate-opt" onclick="gateAnimalRespond(${i})">${opt}</button>`
+  ).join('');
+  document.getElementById('gate-response').style.display='none';
+  document.getElementById('gate-response').className='gate-response';
+  document.getElementById('gate-continue').style.display='none';
+  overlay.classList.add('active');
+}
+
+function gateAnimalRespond(idx){
+  const gate = GATE_ANIMALS[S.activeGateId];
+  document.querySelectorAll('.gate-opt').forEach(b=>b.disabled=true);
+  const resp = document.getElementById('gate-response');
+  const isCorrect = idx === gate.correctIdx;
+  resp.className = 'gate-response ' + (isCorrect ? 'correct' : 'partial');
+  resp.textContent = isCorrect ? gate.responseCorrect : gate.responsePartial;
+  resp.style.display = 'block';
+  document.getElementById('gate-continue').style.display = 'block';
+}
+
+function gateAnimalContinue(){
+  const gid = S.activeGateId;
+  S.gateCleared.add(gid);
+  sessionStorage.setItem('yoyo_gates_cleared_china', JSON.stringify([...S.gateCleared]));
+  document.getElementById('gate-overlay').classList.remove('active');
+  S.gateActive = false; S.activeGateId = null;
 }
 
 // ═══════════════════════════════════

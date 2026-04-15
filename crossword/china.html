@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Challenge — Ancient China</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#090c14;--gold:#F0C040;--sand:#D4A96A;--terra:#C1440E;--text:#F5ECD7;--dim:#A89070;--purple:#7B68EE;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── HEADER ── */
+.page-header{display:flex;align-items:center;gap:14px;padding:16px 20px;border-bottom:1px solid rgba(212,169,106,.15);}
+.hdr-back{color:var(--dim);font-size:.85rem;text-decoration:none;transition:color .2s;white-space:nowrap;}
+.hdr-back:hover{color:var(--gold);}
+.hdr-title{font-family:'Cinzel',serif;color:var(--gold);font-size:1.1rem;}
+.hdr-sub{color:var(--dim);font-size:.78rem;margin-top:1px;}
+
+/* ── LOCKED ── */
+#screen-locked{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:16px;padding:40px 24px;text-align:center;}
+#screen-locked.active{display:flex;}
+.lock-icon{font-size:3rem;}
+.lock-title{font-family:'Cinzel',serif;color:var(--gold);font-size:1.3rem;}
+.lock-sub{color:var(--dim);font-size:.9rem;line-height:1.6;max-width:320px;}
+
+/* ── MAIN LAYOUT ── */
+#screen-game{display:none;padding:16px 16px 60px;}
+#screen-game.active{display:block;}
+.cw-hint{color:var(--dim);font-size:.82rem;text-align:center;margin-bottom:16px;}
+
+.cw-main{display:flex;gap:24px;align-items:flex-start;justify-content:center;flex-wrap:wrap;}
+
+/* ── GRID ── */
+#cw-grid-wrap{overflow-x:auto;flex-shrink:0;}
+#cw-grid{
+  display:grid;
+  grid-template-columns:repeat(9,36px);
+  grid-template-rows:repeat(12,36px);
+  gap:2px;
+}
+.cw-cell{
+  width:36px;height:36px;position:relative;
+}
+.cw-cell.empty{background:transparent;}
+.cw-cell.letter{
+  background:#0e1620;
+  border:1.5px solid rgba(240,192,64,.35);
+  border-radius:3px;
+}
+.cw-cell.letter.active{border-color:var(--gold);background:rgba(240,192,64,.12);}
+.cw-cell.letter.correct{background:rgba(60,190,80,.2);border-color:#3cbe50;}
+.cw-cell.letter.wrong{background:rgba(200,60,40,.2);border-color:#c83c28;}
+.cell-num{
+  position:absolute;top:2px;left:3px;
+  font-size:8px;line-height:1;color:var(--sand);
+  pointer-events:none;font-family:'Nunito',sans-serif;font-weight:700;
+}
+.cell-input{
+  width:100%;height:100%;
+  background:transparent;border:none;outline:none;
+  color:var(--text);font-family:'Nunito',sans-serif;font-weight:800;
+  font-size:1rem;text-align:center;text-transform:uppercase;
+  cursor:pointer;caret-color:transparent;
+  padding-top:6px;
+}
+.cell-input::selection{background:transparent;}
+
+/* ── CLUES ── */
+.cw-clues{min-width:200px;max-width:280px;flex:1;}
+.clue-section{margin-bottom:20px;}
+.clue-section h3{
+  font-family:'Cinzel',serif;color:var(--sand);
+  font-size:.78rem;letter-spacing:2px;text-transform:uppercase;
+  margin-bottom:10px;padding-bottom:6px;
+  border-bottom:1px solid rgba(212,169,106,.2);
+}
+.clue-item{
+  display:flex;gap:8px;padding:6px 8px;border-radius:8px;
+  cursor:pointer;transition:background .15s;margin-bottom:2px;
+}
+.clue-item:hover{background:rgba(240,192,64,.06);}
+.clue-item.active{background:rgba(240,192,64,.12);border-left:2px solid var(--gold);padding-left:6px;}
+.clue-item.solved{opacity:.45;}
+.clue-num{color:var(--gold);font-weight:800;font-size:.82rem;flex-shrink:0;min-width:18px;}
+.clue-text{color:var(--dim);font-size:.82rem;line-height:1.45;}
+
+/* ── ACTIONS ── */
+.cw-actions{display:flex;justify-content:center;margin-top:20px;}
+.btn-check{
+  background:linear-gradient(135deg,var(--gold),var(--terra));
+  border:none;border-radius:50px;padding:12px 34px;
+  color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;
+  cursor:pointer;transition:transform .2s;
+}
+.btn-check:hover{transform:translateY(-2px);}
+
+/* ── COMPLETE ── */
+#screen-complete{display:none;flex-direction:column;align-items:center;justify-content:center;min-height:80vh;gap:18px;padding:40px 24px;text-align:center;}
+#screen-complete.active{display:flex;}
+.complete-icon{font-size:3rem;animation:spin 1s ease-out;}
+@keyframes spin{from{transform:rotate(-20deg) scale(.5)}to{transform:rotate(0) scale(1)}}
+.complete-title{font-family:'Cinzel',serif;color:var(--gold);font-size:1.6rem;}
+.complete-sub{color:var(--dim);font-size:.92rem;line-height:1.65;max-width:340px;}
+.btn-primary{background:linear-gradient(135deg,var(--gold),var(--terra));border:none;border-radius:50px;padding:12px 30px;color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:.92rem;cursor:pointer;text-decoration:none;display:inline-block;margin:4px;}
+.btn-outline{background:transparent;border:2px solid rgba(212,169,106,.35);border-radius:50px;padding:10px 26px;color:var(--dim);font-family:'Nunito',sans-serif;font-size:.88rem;cursor:pointer;text-decoration:none;display:inline-block;margin:4px;transition:color .2s,border-color .2s;}
+.btn-outline:hover{color:var(--gold);border-color:var(--gold);}
+
+/* ── CONFETTI ── */
+@keyframes fall{to{transform:translateY(110vh) rotate(720deg);opacity:0;}}
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <a class="hdr-back" href="../index.html">← Back to Home</a>
+  <div>
+    <div class="hdr-title">🔠 Word Challenge</div>
+    <div class="hdr-sub">Ancient China · Level 2</div>
+  </div>
+</div>
+
+<!-- LOCKED -->
+<div id="screen-locked">
+  <div class="lock-icon">🔒</div>
+  <div class="lock-title">Locked!</div>
+  <p class="lock-sub">Complete the Ancient China quiz with a perfect score (5/5) to unlock this word challenge!</p>
+  <a class="btn-outline" href="../china/quiz.html">Take the Quiz →</a>
+  <a class="btn-outline" href="../index.html">Back to Home</a>
+</div>
+
+<!-- GAME -->
+<div id="screen-game">
+  <p class="cw-hint">Click a word or clue to select it · Type to fill</p>
+  <div class="cw-main">
+    <div id="cw-grid-wrap">
+      <div id="cw-grid"></div>
+    </div>
+    <div class="cw-clues">
+      <div class="clue-section">
+        <h3>Across</h3>
+        <div id="clues-across"></div>
+      </div>
+      <div class="clue-section">
+        <h3>Down</h3>
+        <div id="clues-down"></div>
+      </div>
+    </div>
+  </div>
+  <div class="cw-actions">
+    <button class="btn-check" onclick="checkAnswers()">Check Answers ✓</button>
+  </div>
+</div>
+
+<!-- COMPLETE -->
+<div id="screen-complete">
+  <div class="complete-icon">🐉</div>
+  <div class="complete-title">You solved it!</div>
+  <p class="complete-sub">Incredible work, Yoyo! You've mastered the vocabulary of Ancient China. The dragon is impressed! 🌊</p>
+  <div>
+    <a class="btn-primary" href="../index.html">🌍 World Map</a>
+    <a class="btn-outline" href="../china/index.html">← Ancient China</a>
+  </div>
+</div>
+
+<script>
+// ── WORD DATA ──
+// Grid: 12 rows (0-11) × 9 cols (0-8)
+//
+// Layout (verified):
+//      0    1    2    3    4    5    6    7    8
+//  0   .    .    .    C    .    .    .    .    .
+//  1   .    .    .    O    R    A    C    L    E  ← ORACLE (A-1, r:1, c:3)
+//  2   .    D    Y    N    A    S    T    Y    .  ← DYNASTY (A-2, r:2, c:1)
+//  3   .    E    A    F    .    .    .    .    .
+//  4   .    M    N    U    .    .    .    .    .
+//  5   .    P    G    C    .    .    .    .    .
+//  6   M    E    T    I    .    .    .    .    .
+//  7   I    R    Z    U    .    .    .    .    .
+//  8   L    O    E    S    S    .    .    .    .  ← LOESS (A-3, r:8, c:0)
+//  9   L    R    .    .    .    .    .    .    .
+// 10   E    .    .    .    .    .    .    .    .
+// 11   T    .    .    .    .    .    .    .    .
+//
+// Down words:
+//  CONFUCIUS: D-1, col 3, rows 0-8
+//  YANGTZE:   D-2, col 2, rows 2-8
+//  EMPEROR:   D-3, col 1, rows 3-9
+//  MILLET:    D-4, col 0, rows 6-11
+
+const WORD_DATA = [
+  // Across
+  { id:'oracle',    dir:'A', r:1, c:3, word:'ORACLE',    num:1, clue:'Ancient bones used to ask the gods questions — their cracks were the answers' },
+  { id:'dynasty',   dir:'A', r:2, c:1, word:'DYNASTY',   num:2, clue:'A ruling family that passes power from generation to generation' },
+  { id:'loess',     dir:'A', r:8, c:0, word:'LOESS',     num:3, clue:'Fine yellow soil left by floods — perfect for growing millet' },
+  // Down
+  { id:'confucius', dir:'D', r:0, c:3, word:'CONFUCIUS', num:1, clue:'The famous philosopher whose ideas of harmony shaped Chinese civilization' },
+  { id:'yangtze',   dir:'D', r:2, c:2, word:'YANGTZE',   num:2, clue:"China's longest river, flowing east to the sea" },
+  { id:'emperor',   dir:'D', r:3, c:1, word:'EMPEROR',   num:3, clue:'The supreme ruler of China who commanded the Great Wall to be built' },
+  { id:'millet',    dir:'D', r:6, c:0, word:'MILLET',    num:4, clue:'One of the world\'s earliest farmed crops, grown in ancient China\'s yellow soil' },
+];
+
+const ROWS = 12, COLS = 9;
+
+// ── BUILD GRID MAP ──
+const gridMap = Array.from({length:ROWS}, () => Array(COLS).fill(null));
+
+WORD_DATA.forEach(wd => {
+  for(let i = 0; i < wd.word.length; i++){
+    const r = wd.dir==='A' ? wd.r       : wd.r + i;
+    const c = wd.dir==='A' ? wd.c + i   : wd.c;
+    if(!gridMap[r][c]) gridMap[r][c] = { letter:wd.word[i], startLabels:[], words:[] };
+    if(i===0) gridMap[r][c].startLabels.push(`${wd.num}`);
+    gridMap[r][c].words.push({ wordId:wd.id, pos:i, dir:wd.dir });
+  }
+});
+
+// ── STATE ──
+const S = { activeWordId: null };
+
+// ── RENDER GRID ──
+function buildGrid(){
+  const container = document.getElementById('cw-grid');
+  container.innerHTML = '';
+  for(let r=0; r<ROWS; r++){
+    for(let c=0; c<COLS; c++){
+      const cell = document.createElement('div');
+      cell.id = `cell-${r}-${c}`;
+      const data = gridMap[r][c];
+      if(!data){
+        cell.className = 'cw-cell empty';
+      } else {
+        cell.className = 'cw-cell letter';
+        if(data.startLabels.length){
+          const num = document.createElement('div');
+          num.className = 'cell-num';
+          num.textContent = data.startLabels[0];
+          cell.appendChild(num);
+        }
+        const inp = document.createElement('input');
+        inp.className = 'cell-input';
+        inp.maxLength = 1;
+        inp.autocomplete = 'off';
+        inp.autocorrect = 'off';
+        inp.spellcheck = false;
+        inp.dataset.r = r;
+        inp.dataset.c = c;
+        inp.addEventListener('focus', () => onCellFocus(r, c));
+        inp.addEventListener('input', e => onCellInput(e, r, c));
+        inp.addEventListener('keydown', e => onCellKey(e, r, c));
+        cell.addEventListener('click', () => inp.focus());
+        cell.appendChild(inp);
+      }
+      container.appendChild(cell);
+    }
+  }
+}
+
+// ── CLUES ──
+function buildClues(){
+  const acrossEl = document.getElementById('clues-across');
+  const downEl   = document.getElementById('clues-down');
+  WORD_DATA.filter(w=>w.dir==='A').sort((a,b)=>a.num-b.num).forEach(w=>{
+    acrossEl.appendChild(makeClueItem(w));
+  });
+  WORD_DATA.filter(w=>w.dir==='D').sort((a,b)=>a.num-b.num).forEach(w=>{
+    downEl.appendChild(makeClueItem(w));
+  });
+}
+
+function makeClueItem(wd){
+  const div = document.createElement('div');
+  div.className = 'clue-item';
+  div.id = `clue-${wd.id}`;
+  div.innerHTML = `<span class="clue-num">${wd.num}</span><span class="clue-text">${wd.clue}</span>`;
+  div.addEventListener('click', () => selectWord(wd.id, true));
+  return div;
+}
+
+// ── SELECT WORD ──
+function selectWord(wordId, focusFirst=false){
+  S.activeWordId = wordId;
+  for(let r=0; r<ROWS; r++){
+    for(let c=0; c<COLS; c++){
+      const cell = document.getElementById(`cell-${r}-${c}`);
+      if(!cell || !gridMap[r][c]) continue;
+      const inWord = gridMap[r][c].words.some(w=>w.wordId===wordId);
+      cell.classList.toggle('active', inWord);
+    }
+  }
+  document.querySelectorAll('.clue-item').forEach(el=>el.classList.remove('active'));
+  const clueEl = document.getElementById(`clue-${wordId}`);
+  if(clueEl){
+    clueEl.classList.add('active');
+    clueEl.scrollIntoView({block:'nearest',behavior:'smooth'});
+  }
+  if(focusFirst){
+    const wd = WORD_DATA.find(w=>w.id===wordId);
+    let focused = false;
+    for(let i=0; i<wd.word.length; i++){
+      const r = wd.dir==='A' ? wd.r : wd.r+i;
+      const c = wd.dir==='A' ? wd.c+i : wd.c;
+      const inp = document.querySelector(`#cell-${r}-${c} .cell-input`);
+      if(inp && !inp.value && !focused){ inp.focus(); focused=true; }
+    }
+    if(!focused){
+      const inp = document.querySelector(`#cell-${wd.r}-${wd.c} .cell-input`);
+      if(inp) inp.focus();
+    }
+  }
+}
+
+// ── CELL EVENTS ──
+function onCellFocus(r, c){
+  const data = gridMap[r][c];
+  if(!data) return;
+  if(S.activeWordId && data.words.some(w=>w.wordId===S.activeWordId)) return;
+  if(data.words.length) selectWord(data.words[0].wordId);
+}
+
+function onCellInput(e, r, c){
+  const inp = e.target;
+  const raw = inp.value.toUpperCase().replace(/[^A-Z]/g,'');
+  inp.value = raw.slice(-1);
+  document.getElementById(`cell-${r}-${c}`).classList.remove('correct','wrong');
+  if(inp.value) advanceCell(r, c);
+}
+
+function onCellKey(e, r, c){
+  if(e.key==='Backspace'){
+    const inp = document.querySelector(`#cell-${r}-${c} .cell-input`);
+    if(inp && !inp.value) retreatCell(r, c);
+  }
+  if(e.key==='ArrowRight') moveInDir(r, c, 0, 1);
+  if(e.key==='ArrowLeft')  moveInDir(r, c, 0,-1);
+  if(e.key==='ArrowDown')  moveInDir(r, c, 1, 0);
+  if(e.key==='ArrowUp')    moveInDir(r, c,-1, 0);
+}
+
+function advanceCell(r, c){
+  const wd = WORD_DATA.find(w=>w.id===S.activeWordId);
+  if(!wd) return;
+  const nr = wd.dir==='A' ? r   : r+1;
+  const nc = wd.dir==='A' ? c+1 : c;
+  focusCell(nr, nc);
+}
+
+function retreatCell(r, c){
+  const wd = WORD_DATA.find(w=>w.id===S.activeWordId);
+  if(!wd) return;
+  const nr = wd.dir==='A' ? r   : r-1;
+  const nc = wd.dir==='A' ? c-1 : c;
+  focusCell(nr, nc);
+}
+
+function moveInDir(r, c, dr, dc){
+  focusCell(r+dr, c+dc);
+}
+
+function focusCell(r, c){
+  if(r<0||r>=ROWS||c<0||c>=COLS) return;
+  if(!gridMap[r][c]) return;
+  const inp = document.querySelector(`#cell-${r}-${c} .cell-input`);
+  if(inp) inp.focus();
+}
+
+// ── CHECK ANSWERS ──
+function checkAnswers(){
+  let allCorrect = true;
+  let allFilled = true;
+
+  for(let r=0; r<ROWS; r++){
+    for(let c=0; c<COLS; c++){
+      const data = gridMap[r][c];
+      if(!data) continue;
+      const inp = document.querySelector(`#cell-${r}-${c} .cell-input`);
+      if(!inp) continue;
+      const val = inp.value.toUpperCase();
+      if(!val){ allFilled=false; allCorrect=false; continue; }
+      const isCorrect = val === data.letter;
+      document.getElementById(`cell-${r}-${c}`).classList.toggle('correct', isCorrect);
+      document.getElementById(`cell-${r}-${c}`).classList.toggle('wrong', !isCorrect);
+      if(!isCorrect) allCorrect=false;
+    }
+  }
+
+  WORD_DATA.forEach(wd=>{
+    let wordCorrect = true;
+    for(let i=0; i<wd.word.length; i++){
+      const r = wd.dir==='A' ? wd.r : wd.r+i;
+      const c = wd.dir==='A' ? wd.c+i : wd.c;
+      const inp = document.querySelector(`#cell-${r}-${c} .cell-input`);
+      if(!inp || inp.value.toUpperCase()!==wd.word[i]){ wordCorrect=false; break; }
+    }
+    document.getElementById(`clue-${wd.id}`)?.classList.toggle('solved', wordCorrect);
+  });
+
+  if(allCorrect && allFilled){
+    setTimeout(()=>{ launchConfetti(); showScreen('complete'); }, 600);
+  }
+}
+
+// ── CONFETTI ──
+function launchConfetti(){
+  const symbols = ['🐉','✨','🌟','💛','🌊','🎉'];
+  for(let i=0; i<55; i++){
+    const el = document.createElement('div');
+    el.textContent = symbols[Math.floor(Math.random()*symbols.length)];
+    const dur = 2 + Math.random()*2;
+    el.style.cssText = `position:fixed;top:-30px;left:${Math.random()*100}vw;font-size:${0.9+Math.random()*1.1}rem;
+      animation:fall ${dur}s ease-in forwards;animation-delay:${Math.random()*1.5}s;
+      pointer-events:none;z-index:999;`;
+    document.body.appendChild(el);
+    setTimeout(()=>el.remove(), (dur+2)*1000);
+  }
+}
+
+// ── SCREEN SWITCH ──
+function showScreen(id){
+  document.querySelectorAll('#screen-locked,#screen-game,#screen-complete').forEach(s=>{
+    s.classList.remove('active');
+    s.style.display='none';
+  });
+  const el = document.getElementById('screen-'+id);
+  el.style.display = id==='game' ? 'block' : 'flex';
+  el.classList.add('active');
+}
+
+// ── INIT ──
+(function init(){
+  const unlocked = localStorage.getItem('yoyo_crossword_china') === 'true';
+  if(!unlocked){
+    showScreen('locked');
+    return;
+  }
+  buildGrid();
+  buildClues();
+  showScreen('game');
+  selectWord('oracle', true);
+})();
+</script>
+</body>
+</html>

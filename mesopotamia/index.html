@@ -3,23 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Let's Explore, Yoyo! — Mesopotamia</title>
+<title>Yoyo's Learning World — Mesopotamia</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-:root{--bg:#f5e6c4;--gold:#F0C040;--sand:#D4A96A;--terra:#C1440E;--text:#F5ECD7;--dim:#A89070;--purple:#7B68EE;}
+:root{--bg:#f5e6c4;--gold:#F0C040;--sand:#D4A96A;--terra:#C1440E;--text:#F5ECD7;--dim:#A89070;}
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);overflow:hidden;height:100vh;width:100vw;}
+body{font-family:'Nunito',sans-serif;background:#1a0d04;color:var(--text);overflow:hidden;height:100vh;width:100vw;}
 
 /* ── SCREENS ── */
 .screen{display:none;position:fixed;inset:0;z-index:10;}
 .screen.active{display:flex;}
 
-/* ── GAME CANVAS ── (API key screen removed — key lives in Vercel env var) */
+/* ── BEDROOM ── */
+#screen-bedroom,#screen-bedroom-end{background:#2a1a0a;align-items:stretch;}
+#bedroom-svg,#bedroom-end-svg{position:absolute;inset:0;width:100%;height:100%;}
+#bedroom-nisaba{position:absolute;bottom:235px;right:26%;z-index:5;opacity:0;transition:opacity .9s;}
+#bedroom-nisaba.visible{opacity:1;}
+#golden-flash,#golden-flash2{position:absolute;inset:0;z-index:4;pointer-events:none;opacity:0;
+  background:radial-gradient(circle at 74% 42%,rgba(240,192,64,.85) 0%,rgba(240,192,64,0) 55%);}
+#golden-flash.go,#golden-flash2.go{animation:gFlash 1.4s ease forwards;}
+@keyframes gFlash{0%{opacity:0}25%{opacity:1}100%{opacity:0}}
+#clay-tablet-wrap{position:absolute;bottom:235px;right:18%;z-index:6;cursor:pointer;
+  animation:tabPulse 2.2s ease-in-out infinite;}
+@keyframes tabPulse{0%,100%{filter:drop-shadow(0 0 8px rgba(240,192,64,.4))}
+  50%{filter:drop-shadow(0 0 26px rgba(240,192,64,.95))}}
+#clay-tablet-wrap p{text-align:center;color:var(--gold);font-family:'Cinzel',serif;font-size:.72rem;margin-top:5px;letter-spacing:.5px;}
 
-/* ── GAME CANVAS ── */
-#screen-game{position:fixed;inset:0;overflow:hidden;background:linear-gradient(to bottom,#4a90c0 0%,#88cce8 40%,#f5d560 80%,#e89820 100%);}
+/* ── TRANSITION ── */
+#screen-transition{background:#1a0d04;flex-direction:column;align-items:center;justify-content:center;gap:22px;}
+.trans-walk{font-size:3rem;animation:tw 1s ease-in-out infinite alternate;}
+@keyframes tw{from{transform:translateX(-18px)}to{transform:translateX(18px)}}
+.trans-text{font-family:'Cinzel',serif;color:var(--sand);font-size:1.05rem;letter-spacing:1px;}
+#btn-skip-trans{position:absolute;top:20px;right:20px;background:rgba(255,255,255,.08);
+  border:1px solid rgba(212,169,106,.3);border-radius:50px;padding:6px 16px;
+  color:var(--dim);font-size:.8rem;cursor:pointer;border:none;}
+#btn-skip-trans:hover{color:var(--gold);}
+
+/* ── MUSEUM SCENE ── */
+#screen-game{position:fixed;inset:0;overflow:hidden;
+  background:linear-gradient(to bottom,#4a90c0 0%,#88cce8 40%,#f5d560 80%,#e89820 100%);}
 #bg-layer,#mid-layer,#fg-layer{position:absolute;bottom:0;height:100%;pointer-events:none;will-change:transform;}
-.collect-item{pointer-events:auto;}
 #bg-layer{width:5000px;z-index:1;}
 #mid-layer{width:5000px;z-index:2;}
 #fg-layer{width:5000px;z-index:3;}
@@ -27,16 +50,8 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
   background:linear-gradient(to bottom,#c8920a 0%,#9a6a08 100%);z-index:1;}
 #ground-strip::before{content:'';position:absolute;top:0;left:0;right:0;height:5px;
   background:repeating-linear-gradient(90deg,#a07010 0px,#d4a020 120px,#a07010 240px);}
-
-/* ── COLLECTIBLES ── */
-.collect-item{position:absolute;bottom:88px;display:flex;flex-direction:column;align-items:center;user-select:none;z-index:4;cursor:pointer;}
-.ci-orb{font-size:1.8rem;line-height:1;filter:drop-shadow(0 0 4px rgba(240,192,64,0));transition:filter .4s,transform .3s;}
-.collect-item.nearby .ci-orb{filter:drop-shadow(0 0 14px rgba(240,192,64,.9));transform:translateY(-6px) scale(1.15);}
-.collect-item:hover .ci-orb{filter:drop-shadow(0 0 10px rgba(240,192,64,.7));transform:translateY(-4px) scale(1.1);}
-.collect-item.done .ci-orb{opacity:.35;filter:drop-shadow(0 0 6px rgba(240,192,64,.3));}
-/* Zara trigger */
-.collect-item.zara-item .ci-orb{font-size:2.4rem;}
-.collect-item.zara-item.locked .ci-orb{filter:grayscale(1);opacity:.35;}
+.exhibit-sign{position:absolute;z-index:4;pointer-events:none;bottom:92px;}
+#seal-door-wrap{position:absolute;z-index:4;bottom:88px;left:4400px;pointer-events:auto;}
 
 /* ── YOYO ── */
 #yoyo-el{position:fixed;bottom:82px;z-index:20;transform:translateX(-50%);}
@@ -44,161 +59,277 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
 #yoyo-el.face-left svg{transform:scaleX(-1);}
 @keyframes yoyo-walk{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-7px)}}
 
-/* ── HUD ── */
-#hud{position:fixed;top:0;left:0;right:0;z-index:30;display:flex;justify-content:space-between;align-items:flex-start;padding:14px 18px;pointer-events:none;}
-.hud-back{pointer-events:auto;background:rgba(17,9,4,.8);border:1px solid rgba(212,169,106,.3);border-radius:50px;padding:6px 14px;font-size:.8rem;color:var(--dim);cursor:pointer;text-decoration:none;display:inline-block;transition:color .2s;}
-.hud-back:hover{color:var(--gold);}
-#hud-right{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end;}
-.bp-hud{background:rgba(17,9,4,.85);border:1px solid rgba(212,169,106,.25);border-radius:14px;padding:7px 10px;display:flex;flex-direction:column;align-items:center;gap:4px;min-width:52px;transition:border-color .4s;}
-.bp-hud.complete{border-color:var(--gold);box-shadow:0 0 10px rgba(240,192,64,.25);}
-.bp-emoji{font-size:1.2rem;line-height:1;}
-.bp-dots{display:flex;gap:4px;}
-.bp-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.15);border:1px solid rgba(212,169,106,.2);transition:all .4s;}
-.bp-dot.filled{background:var(--gold);border-color:var(--gold);box-shadow:0 0 5px rgba(240,192,64,.5);}
-#hud-hint{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);z-index:30;
-  background:rgba(17,9,4,.75);border:1px solid rgba(212,169,106,.2);border-radius:30px;padding:5px 14px;font-size:.73rem;color:var(--dim);}
+/* ── MUSEUM HUD ── */
+#museum-banner{position:fixed;top:0;left:50%;transform:translateX(-50%);z-index:30;
+  background:rgba(17,9,4,.92);border:1px solid rgba(212,169,106,.3);border-top:none;
+  border-radius:0 0 14px 14px;padding:6px 26px;font-family:'Cinzel',serif;
+  font-size:.76rem;color:var(--gold);letter-spacing:.5px;display:none;}
+#museum-banner.on{display:block;}
+#hud-back{position:fixed;top:14px;left:18px;z-index:30;background:rgba(17,9,4,.8);
+  border:1px solid rgba(212,169,106,.3);border-radius:50px;padding:6px 14px;
+  font-size:.8rem;color:var(--dim);text-decoration:none;display:none;}
+#hud-back.on{display:inline-block;}
+#hud-back:hover{color:var(--gold);}
+#shard-bar{position:fixed;top:14px;right:18px;z-index:30;display:none;
+  align-items:center;gap:9px;background:rgba(17,9,4,.82);
+  border:1px solid rgba(212,169,106,.25);border-radius:50px;padding:7px 14px;}
+#shard-bar.on{display:flex;}
+#shard-bar label{color:var(--dim);font-size:.68rem;letter-spacing:.5px;text-transform:uppercase;}
+.shard-slot{width:17px;height:17px;border-radius:50%;
+  border:1.5px solid rgba(240,192,64,.3);background:rgba(240,192,64,.07);transition:all .4s;}
+.shard-slot.filled{background:var(--gold);border-color:var(--gold);
+  box-shadow:0 0 9px rgba(240,192,64,.8);animation:sPop .35s ease;}
+@keyframes sPop{0%{transform:scale(1.7)}100%{transform:scale(1)}}
+#walk-hint{position:fixed;bottom:265px;right:22px;z-index:35;display:none;
+  background:rgba(17,9,4,.85);border:1px solid rgba(212,169,106,.28);border-radius:50px;
+  padding:8px 18px;color:var(--sand);font-size:.8rem;}
 
-/* ── TOAST ── */
-.toast{position:fixed;bottom:70px;left:50%;transform:translateX(-50%) translateY(12px);z-index:200;
-  background:linear-gradient(135deg,var(--gold),var(--terra));color:white;
-  font-family:'Cinzel',serif;font-weight:700;font-size:.95rem;
-  padding:10px 26px;border-radius:50px;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;}
-.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+/* ── NISABA OVERLAY ── */
+#nisaba-overlay{position:fixed;bottom:0;left:0;right:0;z-index:50;
+  background:linear-gradient(to top,rgba(4,2,0,.97),rgba(8,4,1,.88));
+  border-top:1px solid rgba(212,169,106,.22);padding:12px 18px 15px;
+  display:none;flex-direction:column;gap:9px;}
+#nisaba-overlay.on{display:flex;}
+.nis-row{display:flex;gap:13px;align-items:flex-start;}
+#nis-char{flex-shrink:0;transition:opacity .5s;}
+#nis-bubble{flex:1;background:rgba(212,169,106,.07);border:1px solid rgba(212,169,106,.2);
+  border-radius:16px;border-bottom-left-radius:4px;padding:10px 14px;
+  color:var(--text);font-size:.91rem;line-height:1.65;min-height:50px;white-space:pre-line;}
+#nis-input-row{display:flex;gap:8px;align-items:center;}
+#nis-input{flex:1;background:rgba(255,245,220,.88);border:1.5px solid rgba(212,169,106,.6);
+  border-radius:50px;padding:10px 18px;color:#2a1006;font-family:'Nunito',sans-serif;
+  font-size:.9rem;outline:none;transition:border-color .2s;}
+#nis-input:focus{border-color:var(--gold);background:rgba(255,245,220,.96);}
+#nis-input::placeholder{color:rgba(100,60,20,.45);}
+#nis-send{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--sand),var(--terra));
+  border:none;color:white;font-size:1rem;cursor:pointer;flex-shrink:0;transition:transform .2s;}
+#nis-send:hover:not(:disabled){transform:scale(1.08);}
+#nis-send:disabled{opacity:.35;cursor:default;}
+#nis-actions{display:flex;gap:8px;flex-wrap:wrap;min-height:0;}
+.nis-act{background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.32);border-radius:50px;
+  padding:7px 15px;color:var(--gold);font-size:.82rem;cursor:pointer;font-family:'Nunito',sans-serif;transition:background .2s;}
+.nis-act:hover{background:rgba(240,192,64,.2);}
+.nis-continue{background:linear-gradient(135deg,var(--gold),var(--terra));border:none;
+  border-radius:50px;padding:8px 20px;color:white;font-family:'Nunito',sans-serif;
+  font-weight:800;font-size:.84rem;cursor:pointer;transition:transform .2s;}
+.nis-continue:hover{transform:translateY(-2px);}
+.nis-soft{background:transparent;border:1px dashed rgba(212,169,106,.38);border-radius:50px;
+  padding:7px 15px;color:var(--dim);font-size:.8rem;cursor:pointer;font-family:'Nunito',sans-serif;}
+.nis-soft:hover{color:var(--sand);}
+.typing-dots{display:flex;gap:5px;padding:3px 0;}
+.dot{width:6px;height:6px;background:var(--sand);border-radius:50%;animation:dp 1.2s infinite ease-in-out;}
+.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
+@keyframes dp{0%,60%,100%{transform:scale(.8);opacity:.45}30%{transform:scale(1.3);opacity:1}}
+
+/* ── AREA 5 SHARD SLOTS UI ── */
+#shard-place-ui{display:flex;gap:12px;align-items:center;justify-content:center;padding:4px 0;}
+.place-slot{width:28px;height:28px;border-radius:50%;border:2px solid rgba(240,192,64,.4);
+  background:rgba(240,192,64,.07);cursor:pointer;transition:all .3s;position:relative;}
+.place-slot.filled{background:var(--gold);border-color:var(--gold);
+  box-shadow:0 0 12px rgba(240,192,64,.9);cursor:default;}
+.place-slot.filled::after{content:'✦';position:absolute;inset:0;display:flex;align-items:center;
+  justify-content:center;font-size:.6rem;color:#1a0d04;}
+.place-slot:not(.filled):hover{border-color:var(--gold);background:rgba(240,192,64,.15);}
 
 /* ── CARD MODAL ── */
-#card-modal{position:fixed;inset:0;z-index:50;display:none;justify-content:center;align-items:center;
-  background:rgba(6,3,1,.8);backdrop-filter:blur(5px);}
-#card-modal.active{display:flex;}
-.content-card{background:linear-gradient(145deg,#2d1a08,#1a0d04);border:2px solid var(--gold);border-radius:24px;
-  padding:32px 28px;max-width:520px;width:93%;text-align:center;position:relative;
-  box-shadow:0 0 60px rgba(240,192,64,.2);animation:cardUp .3s ease;max-height:90vh;overflow-y:auto;}
+#card-modal{position:fixed;inset:0;z-index:60;display:none;justify-content:center;align-items:center;
+  background:rgba(6,3,1,.82);backdrop-filter:blur(5px);}
+#card-modal.on{display:flex;}
+.content-card{background:linear-gradient(145deg,#2d1a08,#1a0d04);border:2px solid var(--gold);
+  border-radius:22px;padding:26px 24px;max-width:510px;width:93%;text-align:center;position:relative;
+  box-shadow:0 0 60px rgba(240,192,64,.2);animation:cardUp .3s ease;max-height:88vh;overflow-y:auto;}
 @keyframes cardUp{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
-.card-type-badge{font-size:.7rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px;}
-.card-emoji{font-size:2.8rem;display:block;margin-bottom:8px;}
-.card-title{font-family:'Cinzel',serif;color:var(--gold);font-size:1.2rem;margin-bottom:14px;}
-.card-body{color:var(--text);font-size:.95rem;line-height:1.78;margin-bottom:8px;text-align:left;}
-.card-hint{color:var(--dim);font-size:.76rem;margin-bottom:20px;}
-.kw{text-decoration:underline dotted var(--sand);cursor:pointer;position:relative;}
-.kw .kw-tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);
-  background:#2d1a08;border:1px solid var(--sand);border-radius:8px;padding:4px 10px;
-  font-size:.76rem;color:var(--sand);white-space:nowrap;pointer-events:none;z-index:99;}
-.kw.open{color:var(--gold);}.kw.open .kw-tip{display:block;}
-.card-actions{display:flex;flex-direction:column;gap:9px;margin-top:16px;}
-.btn-collect{background:linear-gradient(135deg,var(--gold),var(--terra));border:none;border-radius:50px;padding:11px 28px;color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:.95rem;cursor:pointer;transition:transform .2s,opacity .3s;}
-.btn-collect:hover:not(:disabled){transform:translateY(-2px);}
-.btn-collect:disabled{background:rgba(255,255,255,.1);color:var(--dim);cursor:default;opacity:.7;}
-.btn-secondary{background:transparent;border:1px solid rgba(212,169,106,.35);border-radius:50px;padding:9px 24px;color:var(--dim);font-family:'Nunito',sans-serif;font-size:.88rem;cursor:pointer;transition:color .2s,border-color .2s;}
-.btn-secondary:hover{color:var(--gold);border-color:var(--gold);}
-.already-badge{background:rgba(240,192,64,.1);border:1px solid rgba(240,192,64,.3);border-radius:50px;padding:9px 20px;color:var(--gold);font-size:.85rem;}
-
-/* ── GALLERY CARD ── */
-.gallery-wrap{position:relative;margin-bottom:12px;}
-.gallery-img{width:100%;height:240px;object-fit:cover;border-radius:14px;border:1px solid rgba(212,169,106,.25);background:#1a0e04;}
-.gallery-tag{position:absolute;top:10px;left:10px;background:rgba(17,9,4,.85);border:1px solid var(--sand);border-radius:6px;padding:3px 9px;font-size:.68rem;font-weight:700;color:var(--sand);letter-spacing:1px;}
-.gallery-nav{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
-.gallery-btn{background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.3);border-radius:50%;width:34px;height:34px;color:var(--gold);font-size:1.1rem;cursor:pointer;transition:background .2s;}
-.gallery-btn:hover{background:rgba(240,192,64,.25);}
-.gallery-btn:disabled{opacity:.25;cursor:default;}
-.gallery-cap{font-size:.8rem;color:var(--dim);flex:1;text-align:center;padding:0 8px;line-height:1.4;}
-.gallery-dots{display:flex;gap:5px;justify-content:center;margin-top:6px;}
-.g-dot{width:7px;height:7px;border-radius:50%;background:rgba(212,169,106,.25);transition:background .3s;}
+.card-type-badge{font-size:.68rem;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--dim);margin-bottom:8px;}
+.card-title{font-family:'Cinzel',serif;color:var(--gold);font-size:1.15rem;margin-bottom:14px;}
+.gallery-wrap{position:relative;margin-bottom:10px;}
+.gallery-img{width:100%;height:230px;object-fit:cover;border-radius:12px;border:1px solid rgba(212,169,106,.22);background:#1a0e04;}
+.gallery-tag{position:absolute;top:9px;left:9px;background:rgba(17,9,4,.87);border:1px solid var(--sand);
+  border-radius:5px;padding:3px 9px;font-size:.66rem;font-weight:700;color:var(--sand);letter-spacing:1px;}
+.gallery-nav{display:flex;justify-content:space-between;align-items:center;margin-top:7px;}
+.gallery-btn{background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.28);border-radius:50%;
+  width:32px;height:32px;color:var(--gold);font-size:1rem;cursor:pointer;transition:background .2s;}
+.gallery-btn:hover{background:rgba(240,192,64,.24);}
+.gallery-btn:disabled{opacity:.22;cursor:default;}
+.gallery-cap{font-size:.78rem;color:var(--dim);flex:1;text-align:center;padding:0 8px;line-height:1.4;font-style:italic;}
+.gallery-dots{display:flex;gap:5px;justify-content:center;margin-top:5px;}
+.g-dot{width:6px;height:6px;border-radius:50%;background:rgba(212,169,106,.22);transition:background .3s;}
 .g-dot.active{background:var(--gold);}
-
-/* ── VIDEO CARD ── */
-.yt-preview{position:relative;border-radius:14px;overflow:hidden;margin-bottom:12px;cursor:pointer;background:#000;}
-.yt-thumb{width:100%;display:block;border-radius:14px;}
-.yt-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);transition:background .2s;}
-.yt-play:hover{background:rgba(0,0,0,.4);}
-.yt-play-btn{width:58px;height:58px;background:rgba(255,0,0,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(0,0,0,.5);}
-.yt-play-btn::after{content:'';border-style:solid;border-width:11px 0 11px 20px;border-color:transparent transparent transparent white;margin-left:4px;}
-.yt-meta{text-align:left;margin-bottom:12px;}
-.yt-ch{color:var(--dim);font-size:.78rem;margin-top:3px;}
-.yt-watch{display:inline-block;background:#ff0000;color:white;font-family:'Nunito',sans-serif;font-weight:700;font-size:.88rem;padding:9px 20px;border-radius:50px;text-decoration:none;transition:opacity .2s;margin-bottom:4px;}
+.yt-preview{position:relative;border-radius:12px;overflow:hidden;margin-bottom:10px;cursor:pointer;background:#000;}
+.yt-thumb{width:100%;display:block;border-radius:12px;}
+.yt-play{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.22);}
+.yt-play-btn{width:54px;height:54px;background:rgba(255,0,0,.9);border-radius:50%;display:flex;align-items:center;justify-content:center;}
+.yt-play-btn::after{content:'';border-style:solid;border-width:10px 0 10px 18px;border-color:transparent transparent transparent white;margin-left:4px;}
+.yt-ch{color:var(--dim);font-size:.76rem;margin-bottom:10px;}
+.yt-watch{display:inline-block;background:#ff0000;color:white;font-weight:700;font-size:.86rem;
+  padding:9px 20px;border-radius:50px;text-decoration:none;transition:opacity .2s;margin-bottom:6px;}
 .yt-watch:hover{opacity:.85;}
-.video-ctx{color:var(--dim);font-size:.82rem;line-height:1.55;margin-bottom:8px;font-style:italic;}
+.tbd-note{background:rgba(240,192,64,.07);border:1px dashed rgba(240,192,64,.3);border-radius:10px;
+  padding:14px;color:var(--dim);font-size:.82rem;line-height:1.6;margin-bottom:10px;}
+#leaflet-map{height:270px;border-radius:12px;margin-bottom:10px;border:1px solid rgba(212,169,106,.22);background:#0d2040;}
+.map-note{color:var(--dim);font-size:.76rem;line-height:1.5;margin-bottom:8px;}
+.cuneiform-display{display:flex;justify-content:center;gap:10px;margin:14px 0;flex-wrap:wrap;align-items:center;}
+.cuneif-sym{font-size:2rem;filter:drop-shadow(0 0 8px rgba(240,192,64,.7));animation:cPop .4s ease both;}
+@keyframes cPop{from{opacity:0;transform:scale(1.6) rotate(-12deg)}to{opacity:1;transform:scale(1) rotate(0)}}
+.cuneif-sym:nth-child(2){animation-delay:.12s}.cuneif-sym:nth-child(3){animation-delay:.24s}
+.cuneif-sym:nth-child(4){animation-delay:.36s}.cuneif-sym:nth-child(5){animation-delay:.48s}
+.cuneiform-word{color:var(--gold);font-family:'Cinzel',serif;font-size:1.05rem;margin-bottom:6px;}
+.card-body{color:var(--text);font-size:.92rem;line-height:1.72;margin-bottom:12px;text-align:left;}
+.btn-close-card{background:transparent;border:1px solid rgba(212,169,106,.32);border-radius:50px;
+  padding:9px 22px;color:var(--dim);font-size:.86rem;cursor:pointer;width:100%;margin-top:8px;
+  font-family:'Nunito',sans-serif;transition:color .2s,border-color .2s;}
+.btn-close-card:hover{color:var(--gold);border-color:var(--gold);}
 
-/* ── MAP CARD ── */
-#leaflet-map{height:280px;border-radius:14px;margin-bottom:12px;border:1px solid rgba(212,169,106,.25);background:#0d2040;}
-.map-note{color:var(--dim);font-size:.78rem;line-height:1.5;margin-bottom:8px;}
+/* ── BADGE MODAL ── */
+#badge-modal{position:fixed;inset:0;z-index:80;display:none;justify-content:center;align-items:center;
+  background:rgba(4,2,0,.9);backdrop-filter:blur(8px);}
+#badge-modal.on{display:flex;}
+.badge-card{background:linear-gradient(145deg,#2d1a08,#170d03);border:2px solid var(--gold);
+  border-radius:22px;padding:30px 26px;max-width:460px;width:93%;text-align:center;
+  box-shadow:0 0 80px rgba(240,192,64,.35);animation:cardUp .45s ease;max-height:92vh;overflow-y:auto;}
+.badge-hed{font-family:'Cinzel',serif;color:var(--gold);font-size:1.35rem;margin-bottom:4px;}
+.badge-sub{color:var(--dim);font-size:.78rem;margin-bottom:18px;}
+.badge-seal-wrap{margin:0 auto 16px;display:block;}
+.badge-quote{color:var(--sand);font-style:italic;font-size:.86rem;line-height:1.7;margin-bottom:6px;}
+.badge-attr{color:var(--dim);font-size:.76rem;margin-bottom:16px;}
+.badge-title-label{color:var(--gold);font-family:'Cinzel',serif;font-size:.82rem;letter-spacing:.5px;margin-bottom:4px;}
+.badge-title-val{font-style:italic;font-size:.84rem;color:var(--text);margin-bottom:12px;line-height:1.5;}
+.badge-date{color:var(--dim);font-size:.72rem;margin-bottom:18px;}
+.badge-flip{background:rgba(212,169,106,.1);border:1px solid rgba(212,169,106,.28);
+  border-radius:50px;padding:8px 20px;color:var(--sand);font-size:.82rem;cursor:pointer;
+  margin-bottom:8px;font-family:'Nunito',sans-serif;}
+.badge-flip:hover{color:var(--gold);}
+#badge-back{display:none;}
+#badge-back.on{display:block;}
+.back-title{color:var(--sand);font-family:'Cinzel',serif;font-size:.85rem;margin-bottom:14px;}
+.back-q{text-align:left;margin-bottom:10px;}
+.back-q label{color:var(--dim);font-size:.77rem;display:block;margin-bottom:3px;}
+.back-q input{width:100%;background:rgba(255,255,255,.05);border:1px solid rgba(212,169,106,.28);
+  border-radius:8px;padding:8px 12px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.86rem;outline:none;}
+.back-q.ok input{border-color:var(--gold);}
+.back-q.no input{border-color:var(--terra);}
+.btn-check{background:linear-gradient(135deg,var(--gold),var(--terra));border:none;border-radius:50px;
+  padding:11px 28px;color:white;font-family:'Nunito',sans-serif;font-weight:800;font-size:.92rem;cursor:pointer;margin-top:8px;}
+.crossword-link{color:var(--gold);font-family:'Cinzel',serif;font-size:.88rem;margin-top:10px;display:block;}
+.crossword-link a{color:var(--gold);}
+.btn-home-link{background:transparent;border:1px solid rgba(212,169,106,.3);border-radius:50px;
+  padding:9px 22px;color:var(--dim);font-size:.85rem;cursor:pointer;margin-top:8px;
+  width:100%;font-family:'Nunito',sans-serif;text-decoration:none;display:inline-block;}
+.btn-home-link:hover{color:var(--gold);}
 
-/* ── ZARA CHAT ── */
-#screen-zara{flex-direction:column;align-items:center;background:rgba(8,4,18,.9);backdrop-filter:blur(8px);z-index:60;}
-.zara-wrap{display:flex;flex-direction:column;width:100%;max-width:600px;height:100vh;padding:18px 18px 14px;}
-.zara-hdr{display:flex;align-items:center;gap:12px;padding-bottom:12px;border-bottom:1px solid rgba(123,104,238,.3);margin-bottom:12px;flex-shrink:0;}
-.zara-avatar{width:50px;height:50px;border-radius:50%;background:linear-gradient(135deg,#5b3ecf,#9b6bff);display:flex;align-items:center;justify-content:center;font-size:1.5rem;box-shadow:0 0 18px rgba(123,104,238,.5);}
-.zara-info h2{color:var(--purple);font-family:'Cinzel',serif;font-size:1.05rem;}
-.zara-info p{color:var(--dim);font-size:.8rem;}
-.chat-box{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:11px;padding-right:4px;min-height:0;}
-.chat-box::-webkit-scrollbar{width:3px;}.chat-box::-webkit-scrollbar-thumb{background:rgba(123,104,238,.3);border-radius:3px;}
-.msg{display:flex;gap:9px;align-items:flex-start;}
-.msg.user{flex-direction:row-reverse;}
-.msg-av{width:32px;height:32px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:1rem;}
-.msg.zara .msg-av{background:linear-gradient(135deg,#5b3ecf,#9b6bff);}
-.msg.user .msg-av{background:rgba(240,192,64,.15);border:1px solid rgba(240,192,64,.3);}
-.msg-bubble{max-width:78%;padding:9px 13px;border-radius:15px;font-size:.9rem;line-height:1.6;}
-.msg.zara .msg-bubble{background:rgba(123,104,238,.18);border:1px solid rgba(123,104,238,.3);border-top-left-radius:4px;}
-.msg.user .msg-bubble{background:rgba(240,192,64,.12);border:1px solid rgba(240,192,64,.25);border-top-right-radius:4px;}
-.typing-dots{display:flex;gap:5px;padding:3px 0;}
-.dot{width:7px;height:7px;background:var(--purple);border-radius:50%;animation:dp 1.2s infinite ease-in-out;}
-.dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
-@keyframes dp{0%,60%,100%{transform:scale(.8);opacity:.5}30%{transform:scale(1.2);opacity:1}}
-.presets{display:flex;flex-direction:column;gap:7px;margin:8px 0;flex-shrink:0;}
-.preset-label{color:var(--dim);font-size:.76rem;}
-.preset-btn{background:rgba(123,104,238,.12);border:1px solid rgba(123,104,238,.35);border-radius:11px;padding:9px 13px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.86rem;cursor:pointer;text-align:left;transition:background .2s;}
-.preset-btn:hover{background:rgba(123,104,238,.25);}
-.chat-input-row{display:flex;gap:9px;flex-shrink:0;margin-top:9px;}
-.chat-input{flex:1;background:rgba(255,255,255,.06);border:1px solid rgba(212,169,106,.3);border-radius:50px;padding:10px 17px;color:var(--text);font-family:'Nunito',sans-serif;font-size:.9rem;outline:none;transition:border-color .2s;}
-.chat-input:focus{border-color:var(--purple);}
-.btn-send{width:42px;height:42px;border-radius:50%;background:linear-gradient(135deg,var(--purple),#5b3ecf);border:none;color:white;font-size:1.1rem;cursor:pointer;flex-shrink:0;transition:transform .2s;}
-.btn-send:hover:not(:disabled){transform:scale(1.08);}
-.btn-send:disabled{opacity:.35;cursor:default;}
-.rounds-note{color:var(--dim);font-size:.73rem;text-align:center;margin-top:5px;flex-shrink:0;}
-
-/* ── FRAMEWORK ── */
-#screen-framework{flex-direction:column;align-items:center;overflow-y:auto;background:radial-gradient(ellipse at 50% 0%,#12200a 0%,var(--bg) 70%);padding:36px 18px 60px;z-index:70;}
-.fw-title{font-family:'Cinzel',serif;color:var(--gold);font-size:1.9rem;text-align:center;margin:8px 0 6px;}
-.fw-badge{background:linear-gradient(135deg,var(--gold),var(--terra));color:white;padding:5px 20px;border-radius:50px;font-weight:700;font-size:.86rem;margin:8px 0 16px;display:inline-block;}
-.fw-sub{color:var(--dim);font-size:.93rem;margin-bottom:28px;text-align:center;}
-.chain{display:flex;flex-direction:column;align-items:center;width:100%;max-width:460px;}
-.chain-node{display:flex;align-items:center;gap:13px;background:rgba(45,26,8,.8);border:2px solid rgba(240,192,64,.25);border-radius:15px;padding:13px 18px;width:100%;opacity:0;transform:translateY(14px);transition:opacity .5s,transform .5s,border-color .4s;}
-.chain-node.revealed{opacity:1;transform:translateY(0);border-color:rgba(240,192,64,.65);}
-.chain-icon{font-size:1.7rem;flex-shrink:0;}
-.chain-label{font-family:'Cinzel',serif;color:var(--gold);font-size:.77rem;letter-spacing:.5px;text-transform:uppercase;}
-.chain-desc{color:var(--text);font-size:.88rem;margin-top:2px;line-height:1.42;}
-.chain-arrow{color:var(--gold);font-size:1.3rem;text-align:center;opacity:0;transition:opacity .5s;margin:1px 0;}
-.chain-arrow.revealed{opacity:.65;}
-.fw-question{margin-top:26px;background:rgba(123,104,238,.08);border:1px solid rgba(123,104,238,.3);border-radius:15px;padding:18px 22px;max-width:460px;width:100%;text-align:center;opacity:0;transition:opacity .6s;}
-.fw-question.revealed{opacity:1;}
-.fw-question h3{color:#5a3fb5;font-family:'Cinzel',serif;font-size:.97rem;margin-bottom:8px;}
-.fw-question p{color:#e8d0a0;font-size:.88rem;line-height:1.6;}
-.fw-question em{color:#d4b87a!important;}
-.btn-replay{margin-top:26px;background:transparent;border:2px solid var(--gold);border-radius:50px;padding:11px 34px;color:var(--gold);font-family:'Nunito',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;transition:background .2s,color .2s;}
-.btn-replay:hover{background:var(--gold);color:var(--bg);}
-
-/* ── GATE ANIMAL ── */
-#gate-overlay{position:fixed;inset:0;z-index:80;display:none;justify-content:center;align-items:center;background:rgba(6,3,1,.78);backdrop-filter:blur(5px);}
-#gate-overlay.active{display:flex;}
-.gate-box{background:linear-gradient(145deg,#2d1a08,#1a0d04);border:2px solid var(--gold);border-radius:24px;padding:28px 26px 24px;max-width:400px;width:93%;text-align:center;box-shadow:0 0 60px rgba(240,192,64,.25);}
-.gate-animal{margin-bottom:10px;display:flex;justify-content:center;}
-.gate-q{color:var(--text);font-size:.97rem;line-height:1.65;margin-bottom:18px;}
-.gate-opts{display:flex;flex-direction:column;gap:8px;margin-bottom:12px;}
-.gate-response{color:var(--gold);font-family:'Cinzel',serif;font-size:.9rem;min-height:1.4em;margin-top:6px;}
-.gate-input-row{display:flex;gap:8px;margin-top:10px;}
-@keyframes gJumpUp  {from{opacity:0;transform:translateY(60px)} to{opacity:1;transform:translateY(0)}}
-@keyframes gSlideR  {from{opacity:0;transform:translateX(-80px)}to{opacity:1;transform:translateX(0)}}
-@keyframes gJumpDown{from{opacity:0;transform:translateY(-60px)}to{opacity:1;transform:translateY(0)}}
-@keyframes gFadeOut {from{opacity:1;transform:translateY(0)} to{opacity:0;transform:translateY(20px)}}
-.anim-jump-up  {animation:gJumpUp   .35s ease-out;}
-.anim-slide-right{animation:gSlideR .35s ease-out;}
-.anim-jump-down{animation:gJumpDown .35s ease-out;}
-.anim-fade-out {animation:gFadeOut  .5s ease-out forwards;}
+/* ── TOAST ── */
+.toast{position:fixed;bottom:270px;left:50%;transform:translateX(-50%) translateY(12px);z-index:200;
+  background:linear-gradient(135deg,var(--gold),var(--terra));color:white;
+  font-family:'Cinzel',serif;font-weight:700;font-size:.88rem;
+  padding:10px 24px;border-radius:50px;opacity:0;transition:opacity .3s,transform .3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 </style>
 </head>
 <body>
 
-<!-- ══ GAME ══ -->
-<div id="screen-game" class="screen active">
-  <!-- Background layer (sky + distant) -->
+<!-- ══ BEDROOM: OPENING ══ -->
+<div id="screen-bedroom" class="screen active">
+  <div id="golden-flash"></div>
+  <svg id="bedroom-svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <!-- Wall -->
+    <defs>
+      <linearGradient id="wallGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#faf0e0"/><stop offset="100%" stop-color="#f0dfc8"/>
+      </linearGradient>
+      <linearGradient id="floorGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#c89060"/><stop offset="100%" stop-color="#9a6838"/>
+      </linearGradient>
+      <radialGradient id="lampGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#f8d060" stop-opacity=".28"/>
+        <stop offset="100%" stop-color="#f8d060" stop-opacity="0"/>
+      </radialGradient>
+      <radialGradient id="winLight" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#ddeeff" stop-opacity=".9"/>
+        <stop offset="100%" stop-color="#b8d0e8" stop-opacity=".8"/>
+      </radialGradient>
+    </defs>
+    <rect width="800" height="375" fill="url(#wallGrad)"/>
+    <rect y="375" width="800" height="125" fill="url(#floorGrad)"/>
+    <!-- Floor boards -->
+    <line x1="0" y1="395" x2="800" y2="395" stroke="#b07840" stroke-width="1.2" opacity=".4"/>
+    <line x1="0" y1="415" x2="800" y2="415" stroke="#b07840" stroke-width="1.2" opacity=".4"/>
+    <line x1="0" y1="435" x2="800" y2="435" stroke="#b07840" stroke-width="1.2" opacity=".4"/>
+    <line x1="0" y1="455" x2="800" y2="455" stroke="#b07840" stroke-width="1.2" opacity=".4"/>
+    <!-- Rug -->
+    <rect x="90" y="380" width="580" height="75" rx="12" fill="#c07050" opacity=".38"/>
+    <rect x="104" y="390" width="552" height="55" rx="8" fill="none" stroke="#e09070" stroke-width="1.5" opacity=".4"/>
+    <!-- Window curtain rod -->
+    <rect x="275" y="32" width="230" height="8" rx="4" fill="#7b4520"/>
+    <circle cx="275" cy="36" r="6" fill="#9b5a28"/>
+    <circle cx="505" cy="36" r="6" fill="#9b5a28"/>
+    <!-- Window frame -->
+    <rect x="298" y="40" width="184" height="196" rx="4" fill="#7b4520"/>
+    <!-- Glass -->
+    <rect x="308" y="52" width="164" height="172" fill="url(#winLight)"/>
+    <!-- Outside sky detail -->
+    <rect x="308" y="52" width="164" height="120" fill="#b8d8f0" opacity=".5"/>
+    <ellipse cx="360" cy="80" rx="28" ry="12" fill="white" opacity=".75"/>
+    <ellipse cx="420" cy="100" rx="22" ry="9" fill="white" opacity=".65"/>
+    <ellipse cx="385" cy="65" rx="18" ry="8" fill="white" opacity=".7"/>
+    <!-- Window sill -->
+    <rect x="296" y="228" width="188" height="10" rx="2" fill="#8b5a28"/>
+    <!-- Curtain left (draped back) -->
+    <path d="M276,38 Q270,90 268,140 Q266,185 272,220 Q282,228 290,226 Q285,185 287,140 Q289,90 296,38Z" fill="#e8c890" opacity=".9"/>
+    <!-- Curtain right (draped back) -->
+    <path d="M504,38 Q510,90 512,140 Q514,185 508,220 Q498,228 490,226 Q495,185 493,140 Q491,90 484,38Z" fill="#e8c890" opacity=".9"/>
+    <!-- Curtain tie left -->
+    <ellipse cx="284" cy="155" rx="12" ry="7" fill="#d4a870" opacity=".8"/>
+    <!-- Curtain tie right -->
+    <ellipse cx="496" cy="155" rx="12" ry="7" fill="#d4a870" opacity=".8"/>
+    <!-- Bed headboard (left side) -->
+    <rect x="15" y="260" width="195" height="52" rx="8" fill="#6b3818"/>
+    <rect x="25" y="270" width="175" height="32" rx="5" fill="#7b4820" opacity=".7"/>
+    <!-- Bed body -->
+    <rect x="15" y="308" width="195" height="90" rx="4" fill="#7b4820"/>
+    <!-- Pillow -->
+    <ellipse cx="90" cy="316" rx="58" ry="20" fill="#faf0e8"/>
+    <ellipse cx="90" cy="316" rx="50" ry="15" fill="white" opacity=".6"/>
+    <!-- Blanket -->
+    <rect x="15" y="332" width="195" height="66" rx="4" fill="#d89070"/>
+    <rect x="25" y="342" width="175" height="46" rx="3" fill="#e8a888" opacity=".65"/>
+    <line x1="15" y1="356" x2="210" y2="356" stroke="#c07850" stroke-width="1" opacity=".4"/>
+    <line x1="15" y1="370" x2="210" y2="370" stroke="#c07850" stroke-width="1" opacity=".4"/>
+    <!-- Desk top -->
+    <rect x="574" y="302" width="206" height="18" rx="3" fill="#7b4820"/>
+    <!-- Desk legs -->
+    <rect x="584" y="320" width="11" height="90" rx="4" fill="#5a3010"/>
+    <rect x="760" y="320" width="11" height="90" rx="4" fill="#5a3010"/>
+    <!-- Desk shelf -->
+    <rect x="574" y="360" width="180" height="8" rx="2" fill="#6b3818" opacity=".7"/>
+    <!-- Books on desk -->
+    <rect x="586" y="288" width="38" height="16" rx="2" fill="#8b3838"/>
+    <rect x="626" y="290" width="32" height="14" rx="2" fill="#3a5a3a"/>
+    <rect x="660" y="291" width="28" height="13" rx="2" fill="#3a3a7a"/>
+    <!-- Lamp base -->
+    <rect x="722" y="290" width="32" height="13" rx="3" fill="#4a4a4a"/>
+    <rect x="736" y="266" width="4" height="26" fill="#5a5a5a"/>
+    <!-- Lamp shade -->
+    <path d="M720,266 L752,266 L744,242 L728,242Z" fill="#d4a050"/>
+    <line x1="720" y1="266" x2="752" y2="266" stroke="#b88030" stroke-width="2"/>
+    <!-- Lamp glow on desk -->
+    <ellipse cx="738" cy="300" rx="110" ry="55" fill="url(#lampGlow)"/>
+    <!-- Wall shadow hint -->
+    <rect x="0" y="0" width="60" height="500" fill="rgba(0,0,0,.06)"/>
+    <rect x="740" y="0" width="60" height="500" fill="rgba(0,0,0,.04)"/>
+  </svg>
+  <div id="bedroom-nisaba"></div>
+</div>
+
+<!-- ══ TRANSITION ══ -->
+<div id="screen-transition" class="screen">
+  <div class="trans-walk">🚶‍♀️✨</div>
+  <p class="trans-text">A short walk to the museum...</p>
+  <button id="btn-skip-trans" onclick="finishTransition()">Skip →</button>
+</div>
+
+<!-- ══ MUSEUM ══ -->
+<div id="screen-game" class="screen">
+
+  <!-- Background layer -->
   <div id="bg-layer">
     <svg width="5000" height="600" viewBox="0 0 5000 600" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:5000px;height:100%">
       <defs>
@@ -208,21 +339,15 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
           <stop offset="80%"  stop-color="#f5d560"/>
           <stop offset="100%" stop-color="#e89820"/>
         </linearGradient>
-        <radialGradient id="moonGlow" cx="50%" cy="50%" r="50%">
-          <stop offset="0%" stop-color="#e8dfa0" stop-opacity=".4"/>
-          <stop offset="100%" stop-color="#e8dfa0" stop-opacity="0"/>
-        </radialGradient>
         <radialGradient id="sunGlow" cx="50%" cy="50%" r="50%">
           <stop offset="0%" stop-color="#F0C040" stop-opacity=".35"/>
           <stop offset="100%" stop-color="#F0C040" stop-opacity="0"/>
         </radialGradient>
       </defs>
       <rect width="5000" height="600" fill="url(#sky)"/>
-      <!-- Sun — high daytime position, warm bright -->
       <circle cx="2500" cy="55" r="120" fill="url(#sunGlow)"/>
       <circle cx="2500" cy="55" r="52"  fill="#ffe050" opacity=".95"/>
       <circle cx="2500" cy="55" r="40"  fill="#fff5a0" opacity="1"/>
-      <!-- Sun rays -->
       <g stroke="#ffe050" stroke-width="2.5" opacity=".5">
         <line x1="2500" y1="0"  x2="2500" y2="18"/>
         <line x1="2550" y1="8"  x2="2538" y2="24"/>
@@ -230,43 +355,35 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
         <line x1="2450" y1="8"  x2="2462" y2="24"/>
         <line x1="2412" y1="28" x2="2428" y2="38"/>
       </g>
-      <!-- Distant silhouette hills (zone 0) — warm terracotta -->
       <path d="M0,360 Q80,320 160,340 Q240,355 320,325 Q400,295 480,318 Q560,340 640,320 Q720,300 800,322 Q880,345 960,330 Q1000,322 1000,322 L1000,380 L0,380Z" fill="#b87040" opacity=".7"/>
-      <!-- Distant dunes (zone 2) — golden sand -->
       <path d="M1000,358 Q1080,330 1160,348 Q1240,365 1320,338 Q1400,310 1480,330 Q1560,348 1640,325 Q1720,302 1800,320 Q1880,338 1960,322 Q2000,315 2000,315 L2000,380 L1000,380Z" fill="#c8880a" opacity=".6"/>
-      <!-- Distant horizon (zones 3-5) — warm brown -->
       <path d="M2000,345 Q2200,330 2400,340 Q2600,350 2800,332 Q3000,315 3200,325 Q3400,335 3600,320 Q3800,305 4000,318 Q4200,330 4400,315 Q4600,300 4800,312 Q4900,318 5000,315 L5000,380 L2000,380Z" fill="#a06830" opacity=".55"/>
     </svg>
   </div>
 
-  <!-- Midground layer (main landscape) -->
+  <!-- Midground layer -->
   <div id="mid-layer">
     <svg width="5000" height="600" viewBox="0 0 5000 600" xmlns="http://www.w3.org/2000/svg" style="position:absolute;top:0;left:0;width:5000px;height:100%">
       <defs>
         <linearGradient id="riverGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#1a4a7a"/>
-          <stop offset="100%" stop-color="#0d2a4a"/>
+          <stop offset="0%" stop-color="#1a4a7a"/><stop offset="100%" stop-color="#0d2a4a"/>
         </linearGradient>
         <linearGradient id="zigGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#c1890a"/>
-          <stop offset="100%" stop-color="#5a3a10"/>
+          <stop offset="0%" stop-color="#c1890a"/><stop offset="100%" stop-color="#5a3a10"/>
         </linearGradient>
         <linearGradient id="fieldGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stop-color="#3d5a1a"/>
-          <stop offset="100%" stop-color="#2a3f10"/>
+          <stop offset="0%" stop-color="#3d5a1a"/><stop offset="100%" stop-color="#2a3f10"/>
         </linearGradient>
+        <radialGradient id="doorGlow" cx="50%" cy="70%" r="60%">
+          <stop offset="0%" stop-color="#c1890a" stop-opacity=".5"/>
+          <stop offset="100%" stop-color="#c1890a" stop-opacity="0"/>
+        </radialGradient>
       </defs>
-
-      <!-- ═══ ZONE 1: RIVERS (0-1000) ═══ -->
-      <!-- Euphrates — far river band -->
+      <!-- ZONE 1: RIVERS -->
       <path d="M-20,185 C80,170 180,192 280,178 C380,164 480,182 580,168 C680,154 780,172 880,162 C940,157 980,160 1020,158" fill="none" stroke="url(#riverGrad)" stroke-width="48" opacity=".8"/>
-      <!-- Euphrates banks -->
       <path d="M-20,162 C80,148 180,168 280,155 C380,142 480,158 580,145 L580,215 C480,208 380,190 280,202 C180,216 80,194 -20,208Z" fill="#2a1a08" opacity=".5"/>
-      <!-- Tigris — closer river -->
       <path d="M-20,285 C80,268 180,290 320,275 C460,260 560,282 700,268 C820,256 920,272 1020,262" fill="none" stroke="url(#riverGrad)" stroke-width="55" opacity=".85"/>
-      <!-- Sandy bank between rivers -->
       <path d="M0,215 C200,208 400,220 600,210 C800,200 900,210 1000,208 L1000,268 C900,264 800,255 600,262 C400,270 200,256 0,264Z" fill="#3d2a12" opacity=".6"/>
-      <!-- Reeds at Tigris edge -->
       <line x1="50" y1="285" x2="45" y2="250" stroke="#2d4a1a" stroke-width="2.5" opacity=".8"/>
       <line x1="65" y1="285" x2="62" y2="245" stroke="#2d4a1a" stroke-width="2.5" opacity=".8"/>
       <line x1="80" y1="285" x2="78" y2="252" stroke="#2d4a1a" stroke-width="2"/>
@@ -275,87 +392,59 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
       <line x1="750" y1="268" x2="746" y2="233" stroke="#2d4a1a" stroke-width="2" opacity=".7"/>
       <line x1="765" y1="268" x2="762" y2="238" stroke="#2d4a1a" stroke-width="2"/>
       <line x1="900" y1="262" x2="896" y2="228" stroke="#2d4a1a" stroke-width="2.5" opacity=".75"/>
-      <!-- Palm trees (zone 1) -->
-      <!-- Palm at x=140 -->
+      <!-- Palm trees zone 1 -->
       <rect x="137" y="330" width="7" height="100" fill="#2d1a06" rx="3"/>
       <path d="M141,332 Q108,300 88,294" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
       <path d="M141,332 Q115,296 100,290" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
       <path d="M141,332 Q142,285 148,278" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
       <path d="M141,332 Q168,298 182,294" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
       <path d="M141,332 Q172,312 188,315" stroke="#3d5a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <!-- Palm at x=340 -->
       <rect x="337" y="320" width="7" height="115" fill="#2d1a06" rx="3"/>
       <path d="M341,322 Q308,288 285,282" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
       <path d="M341,322 Q315,285 300,280" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
       <path d="M341,322 Q342,272 350,265" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
       <path d="M341,322 Q370,288 386,285" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
       <path d="M341,322 Q372,308 390,312" stroke="#3d5a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <!-- Palm at x=620 -->
       <rect x="617" y="338" width="7" height="96" fill="#2d1a06" rx="3"/>
       <path d="M621,340 Q590,308 572,302" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
       <path d="M621,340 Q596,305 580,300" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
       <path d="M621,340 Q622,292 628,285" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
       <path d="M621,340 Q649,307 664,304" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <!-- Palm at x=850 -->
       <rect x="847" y="325" width="7" height="110" fill="#2d1a06" rx="3"/>
       <path d="M851,327 Q820,293 800,288" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
       <path d="M851,327 Q824,290 808,285" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
       <path d="M851,327 Q852,278 858,272" stroke="#3d5a1a" stroke-width="5" fill="none" stroke-linecap="round"/>
       <path d="M851,327 Q880,294 895,292" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
-
-      <!-- ═══ ZONE 2: DESERT (1000-2000) ═══ -->
-      <!-- Barren soil fill -->
+      <!-- ZONE 2: DESERT -->
       <rect x="1000" y="340" width="1000" height="160" fill="#2a1a08" opacity=".7"/>
-      <!-- Cracked earth lines -->
       <line x1="1050" y1="420" x2="1120" y2="400" stroke="#3d2508" stroke-width="1.2" opacity=".6"/>
       <line x1="1120" y1="400" x2="1200" y2="415" stroke="#3d2508" stroke-width="1.2" opacity=".6"/>
-      <line x1="1200" y1="415" x2="1250" y2="395" stroke="#3d2508" stroke-width="1" opacity=".5"/>
       <line x1="1300" y1="408" x2="1380" y2="425" stroke="#3d2508" stroke-width="1.2" opacity=".6"/>
-      <line x1="1380" y1="425" x2="1460" y2="405" stroke="#3d2508" stroke-width="1" opacity=".5"/>
       <line x1="1500" y1="415" x2="1580" y2="398" stroke="#3d2508" stroke-width="1.2" opacity=".6"/>
-      <line x1="1580" y1="398" x2="1660" y2="418" stroke="#3d2508" stroke-width="1" opacity=".5"/>
       <line x1="1700" y1="405" x2="1780" y2="422" stroke="#3d2508" stroke-width="1.2" opacity=".6"/>
       <line x1="1800" y1="412" x2="1880" y2="398" stroke="#3d2508" stroke-width="1" opacity=".55"/>
-      <!-- Sun rays -->
-      <line x1="1500" y1="60" x2="1500" y2="160" stroke="#F0C040" stroke-width="1.5" opacity=".25"/>
-      <line x1="1500" y1="60" x2="1420" y2="145" stroke="#F0C040" stroke-width="1.5" opacity=".2"/>
-      <line x1="1500" y1="60" x2="1580" y2="145" stroke="#F0C040" stroke-width="1.5" opacity=".2"/>
-      <line x1="1500" y1="60" x2="1350" y2="120" stroke="#F0C040" stroke-width="1" opacity=".15"/>
-      <line x1="1500" y1="60" x2="1650" y2="120" stroke="#F0C040" stroke-width="1" opacity=".15"/>
-      <!-- Rocks -->
       <path d="M1160,435 Q1145,408 1185,402 Q1215,398 1225,418 Q1232,435 1160,435Z" fill="#3d2a10" opacity=".9"/>
       <path d="M1550,440 Q1532,415 1568,410 Q1595,406 1603,425 Q1608,440 1550,440Z" fill="#3d2a10" opacity=".85"/>
       <path d="M1820,438 Q1808,416 1840,412 Q1862,408 1868,424 Q1872,438 1820,438Z" fill="#3d2a10" opacity=".9"/>
-
-      <!-- ═══ ZONE 3: AGRICULTURE (2000-3000) ═══ -->
-      <!-- Main irrigation channel -->
+      <!-- ZONE 3: AGRICULTURE -->
       <rect x="2000" y="400" width="1000" height="20" fill="#1a3a5e" opacity=".8" rx="2"/>
-      <!-- Side channels -->
       <rect x="2080" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
       <rect x="2180" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
       <rect x="2320" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
       <rect x="2480" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
       <rect x="2640" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
       <rect x="2800" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
-      <rect x="2920" y="340" width="8" height="60" fill="#1a3a5e" opacity=".65"/>
-      <!-- Fields -->
       <rect x="2090" y="345" width="82" height="55" fill="url(#fieldGrad)" opacity=".8"/>
       <rect x="2190" y="345" width="122" height="55" fill="#2a4210" opacity=".75"/>
       <rect x="2330" y="345" width="142" height="55" fill="url(#fieldGrad)" opacity=".8"/>
       <rect x="2490" y="345" width="142" height="55" fill="#2a4210" opacity=".75"/>
       <rect x="2650" y="345" width="142" height="55" fill="url(#fieldGrad)" opacity=".8"/>
       <rect x="2810" y="345" width="102" height="55" fill="#2a4210" opacity=".75"/>
-      <!-- Field crop lines -->
-      <line x1="2100" y1="355" x2="2170" y2="355" stroke="#4a6b22" stroke-width="1" opacity=".4"/>
-      <line x1="2100" y1="362" x2="2170" y2="362" stroke="#4a6b22" stroke-width="1" opacity=".4"/>
-      <line x1="2100" y1="369" x2="2170" y2="369" stroke="#4a6b22" stroke-width="1" opacity=".4"/>
-      <!-- Farmer silhouettes -->
       <ellipse cx="2380" cy="394" rx="5" ry="9" fill="#1a0e04" opacity=".8"/>
       <rect x="2377" y="390" width="6" height="13" fill="#1a0e04" opacity=".8"/>
       <line x1="2380" y1="396" x2="2390" y2="402" stroke="#1a0e04" stroke-width="2" opacity=".7"/>
       <ellipse cx="2620" cy="392" rx="5" ry="9" fill="#1a0e04" opacity=".8"/>
       <rect x="2617" y="388" width="6" height="13" fill="#1a0e04" opacity=".8"/>
-      <!-- Date palms (small grove, zone 3 right) -->
       <rect x="2867" y="310" width="5" height="90" fill="#2d1a06" rx="2"/>
       <path d="M2870,312 Q2848,288 2835,284" stroke="#3d5a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
       <path d="M2870,312 Q2871,280 2876,274" stroke="#4a6b22" stroke-width="4" fill="none" stroke-linecap="round"/>
@@ -364,12 +453,7 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
       <path d="M2933,318 Q2912,296 2900,292" stroke="#3d5a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
       <path d="M2933,318 Q2934,286 2939,280" stroke="#4a6b22" stroke-width="3.5" fill="none" stroke-linecap="round"/>
       <path d="M2933,318 Q2955,296 2966,294" stroke="#3d5a1a" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-      <rect x="2980" y="322" width="5" height="80" fill="#2d1a06" rx="2"/>
-      <path d="M2983,324 Q2962,302 2950,298" stroke="#3d5a1a" stroke-width="4" fill="none" stroke-linecap="round"/>
-      <path d="M2983,324 Q2984,292 2990,286" stroke="#4a6b22" stroke-width="3.5" fill="none" stroke-linecap="round"/>
-
-      <!-- ═══ ZONE 4: ZIGGURAT (3000-4000) ═══ -->
-      <!-- City wall background -->
+      <!-- ZONE 4: ZIGGURAT -->
       <rect x="3000" y="310" width="1000" height="22" fill="#4a2e0a" opacity=".85"/>
       <rect x="3020" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
       <rect x="3065" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
@@ -377,96 +461,129 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
       <rect x="3155" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
       <rect x="3780" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
       <rect x="3825" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
-      <rect x="3870" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
-      <rect x="3915" y="300" width="24" height="12" fill="#4a2e0a" opacity=".85"/>
-      <!-- Low buildings background -->
       <rect x="3050" y="330" width="80" height="60" fill="#3d2208" opacity=".7"/>
       <rect x="3150" y="325" width="65" height="65" fill="#3d2208" opacity=".65"/>
       <rect x="3850" y="332" width="75" height="58" fill="#3d2208" opacity=".7"/>
       <rect x="3940" y="328" width="60" height="62" fill="#3d2208" opacity=".65"/>
-      <!-- THE ZIGGURAT — centered at x=3500 -->
-      <!-- Level 1 (base) -->
       <rect x="3355" y="340" width="290" height="60" fill="#5a3a10" rx="2"/>
       <rect x="3355" y="340" width="290" height="5" fill="#8b5e1a" opacity=".5"/>
-      <!-- Level 2 -->
       <rect x="3385" y="283" width="230" height="57" fill="#6d4a1a" rx="2"/>
       <rect x="3385" y="283" width="230" height="5" fill="#9b6e2a" opacity=".5"/>
-      <!-- Level 3 -->
       <rect x="3415" y="232" width="170" height="51" fill="#8b5e22" rx="2"/>
       <rect x="3415" y="232" width="170" height="5" fill="#b07838" opacity=".5"/>
-      <!-- Level 4 -->
       <rect x="3443" y="186" width="114" height="46" fill="#a0722a" rx="2"/>
       <rect x="3443" y="186" width="114" height="5" fill="#c08838" opacity=".5"/>
-      <!-- Level 5 -->
       <rect x="3468" y="145" width="64" height="41" fill="#b88035" rx="2"/>
       <rect x="3468" y="145" width="64" height="5" fill="#d09845" opacity=".5"/>
-      <!-- Shrine at top -->
       <rect x="3482" y="118" width="36" height="27" fill="#c1890a" rx="2"/>
       <rect x="3482" y="118" width="36" height="4" fill="#F0C040" opacity=".6"/>
-      <!-- Shrine arch -->
       <path d="M3490,118 Q3500,108 3510,118" fill="#8b5a08" stroke="none"/>
-      <!-- Flame on top -->
       <path d="M3500,118 Q3494,106 3500,98 Q3506,106 3500,118Z" fill="#F0C040" opacity=".9"/>
       <path d="M3500,115 Q3496,108 3500,103 Q3504,108 3500,115Z" fill="white" opacity=".7"/>
-      <!-- Central staircase (front face) -->
       <rect x="3497" y="340" width="7" height="60" fill="#3a2508" opacity=".6"/>
       <rect x="3497" y="283" width="7" height="57" fill="#3a2508" opacity=".6"/>
       <rect x="3497" y="232" width="7" height="51" fill="#3a2508" opacity=".6"/>
       <rect x="3497" y="186" width="7" height="46" fill="#3a2508" opacity=".6"/>
       <rect x="3497" y="145" width="7" height="41" fill="#3a2508" opacity=".6"/>
-      <!-- Processional path -->
       <path d="M3455,400 L3455,360 L3500,360" fill="none" stroke="#6d4a1a" stroke-width="8" opacity=".6"/>
-      <!-- Small people near base -->
       <ellipse cx="3320" cy="396" rx="4" ry="8" fill="#1a0e04" opacity=".7"/>
       <ellipse cx="3680" cy="396" rx="4" ry="8" fill="#1a0e04" opacity=".7"/>
-
-      <!-- ═══ ZONE 5: SCRIBE WORKSHOP (4000-5000) ═══ -->
-      <!-- Courtyard wall -->
+      <!-- ZONE 5: SCRIBE WORKSHOP -->
       <rect x="4020" y="200" width="640" height="250" fill="#1e1008" opacity=".9"/>
-      <!-- Wall texture lines -->
       <rect x="4020" y="215" width="640" height="3" fill="#3d2208" opacity=".4"/>
       <rect x="4020" y="265" width="640" height="3" fill="#3d2208" opacity=".4"/>
       <rect x="4020" y="315" width="640" height="3" fill="#3d2208" opacity=".4"/>
       <rect x="4020" y="365" width="640" height="3" fill="#3d2208" opacity=".4"/>
-      <!-- Arched doorway -->
       <rect x="4260" y="260" width="120" height="190" fill="#2d1a08" rx="4"/>
       <path d="M4260,260 Q4320,210 4380,260Z" fill="#2d1a08"/>
-      <!-- Interior warm glow -->
-      <radialGradient id="doorGlow" cx="50%" cy="70%" r="60%">
-        <stop offset="0%" stop-color="#c1890a" stop-opacity=".5"/>
-        <stop offset="100%" stop-color="#c1890a" stop-opacity="0"/>
-      </radialGradient>
       <rect x="4262" y="262" width="116" height="186" fill="url(#doorGlow)" rx="3"/>
-      <!-- Tablet stacks outside right -->
       <rect x="4400" y="395" width="28" height="5" fill="#8b6914" opacity=".9"/>
       <rect x="4402" y="387" width="24" height="8" fill="#9b7920" opacity=".85"/>
       <rect x="4400" y="379" width="28" height="8" fill="#8b6914" opacity=".9"/>
-      <rect x="4404" y="371" width="20" height="8" fill="#9b7920" opacity=".8"/>
-      <!-- Tablet stacks left -->
       <rect x="4140" y="393" width="26" height="5" fill="#8b6914" opacity=".9"/>
       <rect x="4142" y="384" width="22" height="9" fill="#9b7920" opacity=".85"/>
       <rect x="4140" y="376" width="26" height="8" fill="#8b6914" opacity=".9"/>
-      <!-- Oil lamps on wall -->
       <circle cx="4060" cy="280" r="6" fill="#c1890a" opacity=".8"/>
       <path d="M4060,274 Q4055,265 4060,260 Q4065,265 4060,274Z" fill="#F0C040" opacity=".85"/>
       <circle cx="4620" cy="280" r="6" fill="#c1890a" opacity=".8"/>
       <path d="M4620,274 Q4615,265 4620,260 Q4625,265 4620,274Z" fill="#F0C040" opacity=".85"/>
-      <circle cx="4060" cy="355" r="5" fill="#c1890a" opacity=".7"/>
-      <path d="M4060,350 Q4056,342 4060,338 Q4064,342 4060,350Z" fill="#F0C040" opacity=".8"/>
-      <!-- Scribe sitting inside doorway -->
       <ellipse cx="4320" cy="400" rx="6" ry="10" fill="#1a0e04" opacity=".8"/>
       <rect x="4315" y="396" width="10" height="15" fill="#1a0e04" opacity=".8"/>
       <line x1="4320" y1="400" x2="4336" y2="408" stroke="#1a0e04" stroke-width="2" opacity=".8"/>
     </svg>
   </div>
 
-  <!-- Foreground layer (ground + collectibles) -->
+  <!-- Foreground layer -->
   <div id="fg-layer">
     <div id="ground-strip"></div>
-    <!-- collectibles injected by JS -->
+
+    <!-- Exhibit signs -->
+    <div class="exhibit-sign" style="left:155px">
+      <svg width="175" height="46" xmlns="http://www.w3.org/2000/svg">
+        <rect width="175" height="46" rx="5" fill="#2a1a08" stroke="#D4A96A" stroke-width="1.2"/>
+        <text x="87" y="17" text-anchor="middle" fill="#F0C040" font-size="8" font-family="Cinzel,serif" letter-spacing="0.5">🌊 EXHIBIT I</text>
+        <text x="87" y="31" text-anchor="middle" fill="#F5ECD7" font-size="7.5" font-family="Nunito,sans-serif">Tigris &amp; Euphrates</text>
+        <text x="87" y="41" text-anchor="middle" fill="#A89070" font-size="6.5" font-family="Nunito,sans-serif">River Basin</text>
+      </svg>
+    </div>
+    <div class="exhibit-sign" style="left:1140px">
+      <svg width="175" height="46" xmlns="http://www.w3.org/2000/svg">
+        <rect width="175" height="46" rx="5" fill="#2a1a08" stroke="#D4A96A" stroke-width="1.2"/>
+        <text x="87" y="17" text-anchor="middle" fill="#F0C040" font-size="8" font-family="Cinzel,serif" letter-spacing="0.5">🧱 EXHIBIT II</text>
+        <text x="87" y="31" text-anchor="middle" fill="#F5ECD7" font-size="7.5" font-family="Nunito,sans-serif">Mud-Brick</text>
+        <text x="87" y="41" text-anchor="middle" fill="#A89070" font-size="6.5" font-family="Nunito,sans-serif">Construction</text>
+      </svg>
+    </div>
+    <div class="exhibit-sign" style="left:2110px">
+      <svg width="175" height="46" xmlns="http://www.w3.org/2000/svg">
+        <rect width="175" height="46" rx="5" fill="#2a1a08" stroke="#D4A96A" stroke-width="1.2"/>
+        <text x="87" y="17" text-anchor="middle" fill="#F0C040" font-size="8" font-family="Cinzel,serif" letter-spacing="0.5">🌴 EXHIBIT III</text>
+        <text x="87" y="31" text-anchor="middle" fill="#F5ECD7" font-size="7.5" font-family="Nunito,sans-serif">Food of the</text>
+        <text x="87" y="41" text-anchor="middle" fill="#A89070" font-size="6.5" font-family="Nunito,sans-serif">Two Rivers</text>
+      </svg>
+    </div>
+    <div class="exhibit-sign" style="left:3110px">
+      <svg width="175" height="46" xmlns="http://www.w3.org/2000/svg">
+        <rect width="175" height="46" rx="5" fill="#2a1a08" stroke="#D4A96A" stroke-width="1.2"/>
+        <text x="87" y="17" text-anchor="middle" fill="#F0C040" font-size="8" font-family="Cinzel,serif" letter-spacing="0.5">📜 EXHIBIT IV</text>
+        <text x="87" y="31" text-anchor="middle" fill="#F5ECD7" font-size="7.5" font-family="Nunito,sans-serif">Cuneiform:</text>
+        <text x="87" y="41" text-anchor="middle" fill="#A89070" font-size="6.5" font-family="Nunito,sans-serif">The First Writing</text>
+      </svg>
+    </div>
+
+    <!-- Stone Seal Door (area 5) -->
+    <div id="seal-door-wrap">
+      <svg id="seal-door-svg" width="190" height="270" viewBox="0 0 190 270" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <radialGradient id="doorGlowR" cx="50%" cy="60%" r="50%">
+            <stop offset="0%" stop-color="#f0c040" stop-opacity=".35"/>
+            <stop offset="100%" stop-color="#f0c040" stop-opacity="0"/>
+          </radialGradient>
+        </defs>
+        <!-- Stone arch body -->
+        <path d="M8 270 L8 108 Q8 12 95 12 Q182 12 182 108 L182 270Z" fill="#5a4a3a"/>
+        <!-- Stone texture -->
+        <line x1="0" y1="180" x2="8" y2="180" stroke="#4a3a2a" stroke-width="2"/>
+        <line x1="0" y1="220" x2="8" y2="220" stroke="#4a3a2a" stroke-width="2"/>
+        <line x1="182" y1="180" x2="190" y2="180" stroke="#4a3a2a" stroke-width="2"/>
+        <line x1="182" y1="220" x2="190" y2="220" stroke="#4a3a2a" stroke-width="2"/>
+        <!-- Dark passage -->
+        <path id="door-interior" d="M26 270 L26 116 Q26 36 95 36 Q164 36 164 116 L164 270Z" fill="#100800"/>
+        <!-- Golden glow behind (grows when door opens) -->
+        <path id="door-glow" d="M44 270 L44 124 Q44 58 95 58 Q146 58 146 124 L146 270Z" fill="url(#doorGlowR)" opacity=".0"/>
+        <!-- 5 shard slots in arc -->
+        <circle class="door-slot-circle" id="ds-1" cx="32"  cy="155" r="15" fill="#3a2a1a" stroke="#6a5a4a" stroke-width="2"/>
+        <circle class="door-slot-circle" id="ds-2" cx="60"  cy="112" r="15" fill="#3a2a1a" stroke="#6a5a4a" stroke-width="2"/>
+        <circle class="door-slot-circle" id="ds-3" cx="95"  cy="98"  r="15" fill="#3a2a1a" stroke="#6a5a4a" stroke-width="2"/>
+        <circle class="door-slot-circle" id="ds-4" cx="130" cy="112" r="15" fill="#3a2a1a" stroke="#6a5a4a" stroke-width="2"/>
+        <circle class="door-slot-circle" id="ds-5" cx="158" cy="155" r="15" fill="#3a2a1a" stroke="#6a5a4a" stroke-width="2"/>
+        <!-- Arch keystone decoration -->
+        <path d="M88,12 Q95,6 102,12 L98,22 L92,22Z" fill="#8a7a6a"/>
+      </svg>
+    </div>
   </div>
 
-  <!-- Yoyo character (fixed screen position) -->
+  <!-- Yoyo character -->
   <div id="yoyo-el">
     <svg width="52" height="68" viewBox="0 0 70 92">
       <defs><clipPath id="sc"><rect x="21" y="36" width="28" height="24" rx="8"/></clipPath></defs>
@@ -500,12 +617,116 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
     </svg>
   </div>
 
-  <!-- HUD -->
-  <div id="hud">
-    <a class="hud-back" href="../index.html">← World Map</a>
-    <div id="hud-right"></div>
+</div><!-- end screen-game -->
+
+<!-- ══ BEDROOM: ENDING ══ -->
+<div id="screen-bedroom-end" class="screen">
+  <div id="golden-flash2"></div>
+  <svg id="bedroom-end-svg" viewBox="0 0 800 500" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+    <!-- (same bedroom SVG) -->
+    <defs>
+      <linearGradient id="wG2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#faf0e0"/><stop offset="100%" stop-color="#f0dfc8"/></linearGradient>
+      <linearGradient id="fG2" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#c89060"/><stop offset="100%" stop-color="#9a6838"/></linearGradient>
+      <radialGradient id="lG2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#f8d060" stop-opacity=".28"/><stop offset="100%" stop-color="#f8d060" stop-opacity="0"/></radialGradient>
+      <radialGradient id="wL2" cx="50%" cy="50%" r="50%"><stop offset="0%" stop-color="#ddeeff" stop-opacity=".9"/><stop offset="100%" stop-color="#b8d0e8" stop-opacity=".8"/></radialGradient>
+    </defs>
+    <rect width="800" height="375" fill="url(#wG2)"/>
+    <rect y="375" width="800" height="125" fill="url(#fG2)"/>
+    <line x1="0" y1="395" x2="800" y2="395" stroke="#b07840" stroke-width="1.2" opacity=".4"/>
+    <line x1="0" y1="415" x2="800" y2="415" stroke="#b07840" stroke-width="1.2" opacity=".4"/>
+    <line x1="0" y1="435" x2="800" y2="435" stroke="#b07840" stroke-width="1.2" opacity=".4"/>
+    <rect x="90" y="380" width="580" height="75" rx="12" fill="#c07050" opacity=".38"/>
+    <rect x="275" y="32" width="230" height="8" rx="4" fill="#7b4520"/>
+    <circle cx="275" cy="36" r="6" fill="#9b5a28"/><circle cx="505" cy="36" r="6" fill="#9b5a28"/>
+    <rect x="298" y="40" width="184" height="196" rx="4" fill="#7b4520"/>
+    <rect x="308" y="52" width="164" height="172" fill="url(#wL2)"/>
+    <rect x="308" y="52" width="164" height="120" fill="#b8d8f0" opacity=".5"/>
+    <ellipse cx="360" cy="80" rx="28" ry="12" fill="white" opacity=".75"/>
+    <ellipse cx="420" cy="100" rx="22" ry="9" fill="white" opacity=".65"/>
+    <rect x="296" y="228" width="188" height="10" rx="2" fill="#8b5a28"/>
+    <path d="M276,38 Q270,90 268,140 Q266,185 272,220 Q282,228 290,226 Q285,185 287,140 Q289,90 296,38Z" fill="#e8c890" opacity=".9"/>
+    <path d="M504,38 Q510,90 512,140 Q514,185 508,220 Q498,228 490,226 Q495,185 493,140 Q491,90 484,38Z" fill="#e8c890" opacity=".9"/>
+    <ellipse cx="284" cy="155" rx="12" ry="7" fill="#d4a870" opacity=".8"/>
+    <ellipse cx="496" cy="155" rx="12" ry="7" fill="#d4a870" opacity=".8"/>
+    <rect x="15" y="260" width="195" height="52" rx="8" fill="#6b3818"/>
+    <rect x="25" y="270" width="175" height="32" rx="5" fill="#7b4820" opacity=".7"/>
+    <rect x="15" y="308" width="195" height="90" rx="4" fill="#7b4820"/>
+    <ellipse cx="90" cy="316" rx="58" ry="20" fill="#faf0e8"/>
+    <rect x="15" y="332" width="195" height="66" rx="4" fill="#d89070"/>
+    <rect x="574" y="302" width="206" height="18" rx="3" fill="#7b4820"/>
+    <rect x="584" y="320" width="11" height="90" rx="4" fill="#5a3010"/>
+    <rect x="760" y="320" width="11" height="90" rx="4" fill="#5a3010"/>
+    <rect x="586" y="288" width="38" height="16" rx="2" fill="#8b3838"/>
+    <rect x="626" y="290" width="32" height="14" rx="2" fill="#3a5a3a"/>
+    <rect x="722" y="290" width="32" height="13" rx="3" fill="#4a4a4a"/>
+    <rect x="736" y="266" width="4" height="26" fill="#5a5a5a"/>
+    <path d="M720,266 L752,266 L744,242 L728,242Z" fill="#d4a050"/>
+    <ellipse cx="738" cy="300" rx="110" ry="55" fill="url(#lG2)"/>
+    <!-- Evening mood - slightly dimmer -->
+    <rect width="800" height="500" fill="rgba(20,8,0,.18)"/>
+    <!-- Night sky through window -->
+    <rect x="308" y="52" width="164" height="172" fill="#1a2a4a" opacity=".5"/>
+    <circle cx="370" cy="90" r="5" fill="#fff8d0" opacity=".9"/>
+    <circle cx="420" cy="75" r="3" fill="#fff8d0" opacity=".8"/>
+    <circle cx="445" cy="110" r="2" fill="#fff8d0" opacity=".7"/>
+    <circle cx="340" cy="115" r="2.5" fill="#fff8d0" opacity=".75"/>
+    <!-- Moon -->
+    <circle cx="400" cy="85" r="14" fill="#f8e8b0" opacity=".9"/>
+    <circle cx="408" cy="80" r="11" fill="#1a2a4a" opacity=".9"/>
+  </svg>
+  <!-- Clay tablet on desk -->
+  <div id="clay-tablet-wrap" onclick="openBadge()">
+    <svg width="72" height="72" viewBox="0 0 72 72" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <radialGradient id="tabGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#f0c040" stop-opacity=".6"/>
+          <stop offset="100%" stop-color="#f0c040" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <circle cx="36" cy="36" r="34" fill="url(#tabGlow)"/>
+      <circle cx="36" cy="36" r="26" fill="#a0826d"/>
+      <circle cx="36" cy="36" r="24" fill="#8b6f4a"/>
+      <!-- Cuneiform-like marks -->
+      <line x1="26" y1="28" x2="34" y2="28" stroke="#f0c040" stroke-width="2" opacity=".7"/>
+      <line x1="26" y1="28" x2="26" y2="22" stroke="#f0c040" stroke-width="2" opacity=".7"/>
+      <line x1="38" y1="28" x2="46" y2="28" stroke="#f0c040" stroke-width="2" opacity=".7"/>
+      <line x1="46" y1="28" x2="46" y2="22" stroke="#f0c040" stroke-width="2" opacity=".7"/>
+      <line x1="28" y1="36" x2="44" y2="36" stroke="#f0c040" stroke-width="1.5" opacity=".6"/>
+      <line x1="28" y1="44" x2="36" y2="40" stroke="#f0c040" stroke-width="1.5" opacity=".6"/>
+      <line x1="36" y1="40" x2="44" y2="44" stroke="#f0c040" stroke-width="1.5" opacity=".6"/>
+      <!-- Border -->
+      <circle cx="36" cy="36" r="26" fill="none" stroke="#f0c040" stroke-width="1.5" opacity=".6"/>
+    </svg>
+    <p>✨ Ur's Seal</p>
   </div>
-  <div id="hud-hint">← → to walk &nbsp;·&nbsp; click or SPACE to open</div>
+</div>
+
+<div id="walk-hint">← → Arrow keys or A/D to walk</div>
+
+<!-- ══ MUSEUM HUD (fixed overlays) ══ -->
+<a id="hud-back" href="../index.html">← World Map</a>
+<div id="museum-banner">🏛️ Vancouver Museum · Mesopotamia Special Exhibit</div>
+<div id="shard-bar">
+  <label>MEMORY</label>
+  <div class="shard-slot" id="shard-1"></div>
+  <div class="shard-slot" id="shard-2"></div>
+  <div class="shard-slot" id="shard-3"></div>
+  <div class="shard-slot" id="shard-4"></div>
+  <div class="shard-slot" id="shard-5"></div>
+</div>
+
+<!-- ══ NISABA OVERLAY ══ -->
+<div id="nisaba-overlay">
+  <div class="nis-row">
+    <div id="nis-char"></div>
+    <div id="nis-bubble"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>
+  </div>
+  <div id="nis-input-row">
+    <input id="nis-input" class="nis-input" placeholder="" autocomplete="off"
+      onkeydown="if(event.key==='Enter'&&!event.isComposing)sendNisaba()"/>
+    <button id="nis-send" onclick="sendNisaba()">→</button>
+  </div>
+  <div id="nis-actions"></div>
 </div>
 
 <!-- ══ CARD MODAL ══ -->
@@ -513,800 +734,853 @@ body{font-family:'Nunito',sans-serif;background:var(--bg);color:var(--text);over
   <div class="content-card" id="card-inner"></div>
 </div>
 
-<!-- ══ ZARA ══ -->
-<div id="screen-zara" class="screen">
-  <div class="zara-wrap">
-    <div class="zara-hdr">
-      <div class="zara-avatar">🧭</div>
-      <div class="zara-info"><h2>Zara</h2><p>Your AI time-travel guide</p></div>
+<!-- ══ BADGE MODAL ══ -->
+<div id="badge-modal">
+  <div class="badge-card">
+    <div class="badge-hed">🏺 Ur's Seal</div>
+    <div class="badge-sub">Mesopotamia · Vancouver Museum</div>
+    <svg class="badge-seal-wrap" width="110" height="110" viewBox="0 0 110 110" xmlns="http://www.w3.org/2000/svg">
+      <defs><radialGradient id="bGlow" cx="50%" cy="50%" r="50%">
+        <stop offset="0%" stop-color="#f0c040" stop-opacity=".4"/>
+        <stop offset="100%" stop-color="#f0c040" stop-opacity="0"/>
+      </radialGradient></defs>
+      <circle cx="55" cy="55" r="52" fill="url(#bGlow)"/>
+      <circle cx="55" cy="55" r="40" fill="#8b6f47"/>
+      <circle cx="55" cy="55" r="38" fill="#a0826d"/>
+      <circle cx="55" cy="55" r="36" fill="none" stroke="#f0c040" stroke-width="1.5" opacity=".7"/>
+      <line x1="40" y1="42" x2="52" y2="42" stroke="#f0c040" stroke-width="2.5" opacity=".8"/>
+      <line x1="40" y1="42" x2="40" y2="33" stroke="#f0c040" stroke-width="2.5" opacity=".8"/>
+      <line x1="58" y1="42" x2="70" y2="42" stroke="#f0c040" stroke-width="2.5" opacity=".8"/>
+      <line x1="70" y1="42" x2="70" y2="33" stroke="#f0c040" stroke-width="2.5" opacity=".8"/>
+      <line x1="38" y1="55" x2="72" y2="55" stroke="#f0c040" stroke-width="1.8" opacity=".65"/>
+      <line x1="38" y1="65" x2="50" y2="60" stroke="#f0c040" stroke-width="1.8" opacity=".65"/>
+      <line x1="50" y1="60" x2="62" y2="65" stroke="#f0c040" stroke-width="1.8" opacity=".65"/>
+      <line x1="62" y1="65" x2="72" y2="60" stroke="#f0c040" stroke-width="1.8" opacity=".65"/>
+      <line x1="42" y1="75" x2="68" y2="75" stroke="#f0c040" stroke-width="1.5" opacity=".5"/>
+    </svg>
+    <p class="badge-quote">"May the wind of the two rivers<br>remember you always."</p>
+    <p class="badge-attr">— Nisaba, from Ur</p>
+    <p class="badge-title-label">✨ Title Unlocked</p>
+    <p class="badge-title-val">"The Modern Guide Who Met an Ancient Friend"</p>
+    <p class="badge-date" id="badge-date"></p>
+    <button class="badge-flip" onclick="flipBadge()">Flip the seal over ↻</button>
+    <div id="badge-back">
+      <p class="back-title">Remember what Nisaba told you?</p>
+      <div class="back-q" id="bq1"><label>What made the land good for farming?</label><input type="text" placeholder="your answer..."/></div>
+      <div class="back-q" id="bq2"><label>Why mud bricks, not stone?</label><input type="text" placeholder="your answer..."/></div>
+      <div class="back-q" id="bq3"><label>What was Nisaba's favorite food?</label><input type="text" placeholder="your answer..."/></div>
+      <div class="back-q" id="bq4"><label>What did we write with?</label><input type="text" placeholder="your answer..."/></div>
+      <div class="back-q" id="bq5"><label>Where did Nisaba come from? (city name)</label><input type="text" placeholder="your answer..."/></div>
+      <button class="btn-check" onclick="checkBadgeAnswers()">Check ✓</button>
+      <div id="badge-result" style="margin-top:10px;font-size:.84rem;color:var(--sand);"></div>
+      <div id="crossword-unlock" class="crossword-link" style="display:none">
+        🎉 Crossword unlocked! <a href="../crossword/mesopotamia.html">Play it →</a>
+      </div>
     </div>
-    <div class="chat-box" id="chat-box"></div>
-    <div class="presets" id="presets">
-      <p class="preset-label">Pick a question, or type your own below:</p>
-      <button class="preset-btn" onclick="sendPreset('That IS weird — why would anyone live next to a river that floods every year?', this)">💭 That IS weird — why live next to a flooding river?</button>
-      <button class="preset-btn" onclick="sendPreset('Maybe the water comes from somewhere else, not local rain?', this)">🌧️ Maybe the water travels from somewhere else?</button>
-      <button class="preset-btn" onclick="sendPreset('I have no idea, it seems dangerous.', this)">🤔 I have no idea, it seems dangerous.</button>
-    </div>
-    <div class="chat-input-row">
-      <input id="chat-input" class="chat-input" placeholder="Ask Zara anything... (中文也可以！)" onkeydown="if(event.key==='Enter'&&!event.isComposing)sendMsg()"/>
-      <button id="btn-send" class="btn-send" onclick="sendMsg()" disabled>↑</button>
-    </div>
-    <div class="rounds-note" id="rounds-note">Round 1 of 20</div>
-  </div>
-</div>
-
-<!-- ══ FRAMEWORK ══ -->
-<div id="screen-framework" class="screen">
-  <div style="font-size:3rem;margin-bottom:4px">🌳</div>
-  <div class="fw-title">You did it, Yoyo!</div>
-  <div class="fw-badge">✨ Mesopotamia — Complete</div>
-  <p class="fw-sub">Here's the chain you built, piece by piece:</p>
-  <div class="chain" id="chain"></div>
-  <div class="fw-question" id="fw-question">
-    <h3>Does it matter today? 🤔</h3>
-    <p>The writing system invented here — cuneiform — where do you think it went next?<br><br>
-    <em>Think about this one outside the game. Maybe ask someone you know 😊</em></p>
-  </div>
-  <button class="btn-replay" onclick="replayGame()">🗺️ Explore Again</button>
-  <a class="btn-replay" href="../index.html" style="margin-top:12px;text-decoration:none;display:inline-block;">🌍 World Map</a>
-  <button class="btn-collect" onclick="window.location.href='quiz.html'" style="margin-top:14px;">Take the Quiz! →</button>
-</div>
-
-<!-- ══ GATE ANIMAL ══ -->
-<div id="gate-overlay">
-  <div class="gate-box" id="gate-box">
-    <div class="gate-animal" id="gate-animal-svg"></div>
-    <p class="gate-q" id="gate-q"></p>
-    <div class="gate-opts" id="gate-opts"></div>
-    <div class="gate-input-row">
-      <input id="gate-input" class="chat-input" placeholder="Or say something..." style="flex:1" onkeydown="if(event.key==='Enter')submitGateInput()"/>
-      <button class="btn-send" onclick="submitGateInput()">→</button>
-    </div>
-    <div class="gate-response" id="gate-response"></div>
+    <br>
+    <a href="../index.html" class="btn-home-link">← Back to World Map</a>
   </div>
 </div>
 
 <script>
-// ═══════════════════════════════════
-//  CONSTANTS
-// ═══════════════════════════════════
-const WORLD_W = 5000;
-const SPEED   = 5;
-const PROX    = 170;
-const ANCHOR  = 0.38;
-
-// ═══════════════════════════════════
-//  PIECE DATA
-// ═══════════════════════════════════
-const IMG = {
-  babylonMap:     'https://upload.wikimedia.org/wikipedia/commons/b/bc/The_Babylonian_map_of_the_world%2C_from_Sippar%2C_Mesopotamia..JPG',
-  fertileMap:     'https://upload.wikimedia.org/wikipedia/commons/5/50/Fertile_Crescent_Mesopotamian_map.png',
-  euphratesArt:   'https://upload.wikimedia.org/wikipedia/commons/7/74/A_View_of_Hit%2C_Euphrates_Art.IWMART2352.jpg',
-  euphratesNow:   'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e1/Euphrates_River_%281%29.JPG/1280px-Euphrates_River_%281%29.JPG',
-  agriInlay:      'https://upload.wikimedia.org/wikipedia/commons/0/0f/Inlay_fragments_agricultural_scenes_ED_Ashmolean.jpg',
-  ziggurat:       'https://upload.wikimedia.org/wikipedia/commons/9/95/Great_Ziggurat_of_Ur.JPG',
-  cuneiformBM:    'https://upload.wikimedia.org/wikipedia/commons/9/94/BM%3B_ANE_-_RM_55%2C_Cuneiform_Tablets_Display.1.JPG',
-  cuneiformTablet:'https://upload.wikimedia.org/wikipedia/commons/7/7e/Cuneiform_Writing_on_Clay_Tablet.jpg',
+'use strict';
+/* ── NISABA SVG POSES (long hair + bangs) ──────────────────────────────────── */
+const NIS_SVG = {
+  stand:`<svg width="62" height="90" viewBox="0 0 62 90" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="31" cy="14" rx="18" ry="13" fill="#2a1206"/>
+    <rect x="8"  y="16" width="13" height="50" rx="6" fill="#2a1206"/>
+    <rect x="41" y="16" width="13" height="50" rx="6" fill="#2a1206"/>
+    <circle cx="31" cy="21" r="13" fill="#d49a58"/>
+    <path d="M18,17 Q22,7 31,7 Q40,7 44,17 Q38,15 31,16 Q24,15 18,17Z" fill="#2a1206"/>
+    <circle cx="26" cy="21" r="2.2" fill="#2a1006"/><circle cx="36" cy="21" r="2.2" fill="#2a1006"/>
+    <path d="M26 27 Q31 31 36 27" stroke="#2a1006" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M18,33 L14,75 L22,75 L23,52 L39,52 L40,75 L48,75 L44,33 Q31,29 18,33Z" fill="#7a3a18"/>
+    <rect x="18" y="40" width="26" height="4" rx="2" fill="#c88a38" opacity=".55"/>
+    <line x1="18" y1="35" x2="8"  y2="53" stroke="#d49a58" stroke-width="5" stroke-linecap="round"/>
+    <line x1="44" y1="35" x2="54" y2="53" stroke="#d49a58" stroke-width="5" stroke-linecap="round"/>
+    <rect x="19" y="73" width="10" height="17" rx="5" fill="#2a1006"/>
+    <rect x="33" y="73" width="10" height="17" rx="5" fill="#2a1006"/></svg>`,
+  reach:`<svg width="62" height="90" viewBox="0 0 62 90" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="31" cy="14" rx="18" ry="13" fill="#2a1206"/>
+    <rect x="8"  y="16" width="13" height="50" rx="6" fill="#2a1206"/>
+    <rect x="41" y="16" width="13" height="50" rx="6" fill="#2a1206"/>
+    <circle cx="31" cy="21" r="13" fill="#d49a58"/>
+    <path d="M18,17 Q22,7 31,7 Q40,7 44,17 Q38,15 31,16 Q24,15 18,17Z" fill="#2a1206"/>
+    <circle cx="26" cy="21" r="2.2" fill="#2a1006"/><circle cx="36" cy="21" r="2.2" fill="#2a1006"/>
+    <path d="M26 27 Q31 31 36 27" stroke="#2a1006" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M18,33 L14,75 L22,75 L23,52 L39,52 L40,75 L48,75 L44,33 Q31,29 18,33Z" fill="#7a3a18"/>
+    <rect x="18" y="40" width="26" height="4" rx="2" fill="#c88a38" opacity=".55"/>
+    <line x1="18" y1="35" x2="2"  y2="38" stroke="#d49a58" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="0" cy="37" r="5" fill="#d49a58"/>
+    <line x1="44" y1="35" x2="54" y2="53" stroke="#d49a58" stroke-width="5" stroke-linecap="round"/>
+    <rect x="19" y="73" width="10" height="17" rx="5" fill="#2a1006"/>
+    <rect x="33" y="73" width="10" height="17" rx="5" fill="#2a1006"/></svg>`,
+  wave:`<svg width="62" height="90" viewBox="0 0 62 90" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="31" cy="14" rx="18" ry="13" fill="#2a1206"/>
+    <rect x="8"  y="16" width="13" height="50" rx="6" fill="#2a1206"/>
+    <rect x="41" y="16" width="13" height="50" rx="6" fill="#2a1206"/>
+    <circle cx="31" cy="21" r="13" fill="#d49a58"/>
+    <path d="M18,17 Q22,7 31,7 Q40,7 44,17 Q38,15 31,16 Q24,15 18,17Z" fill="#2a1206"/>
+    <circle cx="26" cy="21" r="2.2" fill="#2a1006"/><circle cx="36" cy="21" r="2.2" fill="#2a1006"/>
+    <path d="M26 27 Q31 32 36 27" stroke="#2a1006" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M18,33 L14,75 L22,75 L23,52 L39,52 L40,75 L48,75 L44,33 Q31,29 18,33Z" fill="#7a3a18"/>
+    <rect x="18" y="40" width="26" height="4" rx="2" fill="#c88a38" opacity=".55"/>
+    <line x1="18" y1="35" x2="8"  y2="53" stroke="#d49a58" stroke-width="5" stroke-linecap="round"/>
+    <line x1="44" y1="35" x2="56" y2="16" stroke="#d49a58" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="58" cy="13" r="6" fill="#d49a58"/>
+    <rect x="19" y="73" width="10" height="17" rx="5" fill="#2a1006"/>
+    <rect x="33" y="73" width="10" height="17" rx="5" fill="#2a1006"/></svg>`,
+  quiet:`<svg width="62" height="90" viewBox="0 0 62 90" xmlns="http://www.w3.org/2000/svg">
+    <ellipse cx="31" cy="15" rx="18" ry="13" fill="#2a1206"/>
+    <rect x="8"  y="17" width="13" height="50" rx="6" fill="#2a1206"/>
+    <rect x="41" y="17" width="13" height="50" rx="6" fill="#2a1206"/>
+    <circle cx="31" cy="22" r="13" fill="#d49a58"/>
+    <path d="M18,18 Q22,8 31,8 Q40,8 44,18 Q38,16 31,17 Q24,16 18,18Z" fill="#2a1206"/>
+    <circle cx="26" cy="22" r="2" fill="#2a1006"/><circle cx="36" cy="22" r="2" fill="#2a1006"/>
+    <path d="M27 28 Q31 27 35 28" stroke="#2a1006" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+    <path d="M18,34 L14,75 L22,75 L23,52 L39,52 L40,75 L48,75 L44,34 Q31,30 18,34Z" fill="#7a3a18"/>
+    <rect x="18" y="41" width="26" height="4" rx="2" fill="#c88a38" opacity=".55"/>
+    <line x1="18" y1="36" x2="23" y2="53" stroke="#d49a58" stroke-width="5" stroke-linecap="round"/>
+    <line x1="44" y1="36" x2="39" y2="53" stroke="#d49a58" stroke-width="5" stroke-linecap="round"/>
+    <rect x="19" y="73" width="10" height="17" rx="5" fill="#2a1006"/>
+    <rect x="33" y="73" width="10" height="17" rx="5" fill="#2a1006"/></svg>`,
 };
 
-const ALL_PIECES = [
-  // ── GEO ── clustered x:200-420, staggered heights
-  { bigId:'geo', id:'geo_text',    type:'text',    x:200, bottom:88,  emoji:'📖', title:'Where is this place?',
-    body:`Two great rivers flow through a dry land.
-    Every year, they <span class="kw" onclick="toggleKw(this)">flood<span class="kw-tip">洪水 · 泛滥</span></span>
-    — and no one can stop them. They come with no warning and sweep over everything.
-    This land sits between two rivers: the <em>Tigris</em> and the <em>Euphrates</em>.` },
-
-  { bigId:'geo', id:'geo_gallery', type:'gallery', x:280, bottom:130, emoji:'🖼️', title:'Then & Now',
-    images:[
-      { url:IMG.babylonMap, cap:'The Babylonian Map of the World, ~600 BCE — Babylon at the center, surrounded by ocean', tag:'ANCIENT' },
-      { url:IMG.fertileMap, cap:'The Fertile Crescent — the green zone where two rivers made civilization possible', tag:'MAP' },
-    ]},
-
-  { bigId:'geo', id:'geo_video',   type:'video',   x:350, bottom:100, emoji:'🎬', title:'The Rise and Fall of History\'s First Empire',
-    videoId:'XBk9KywTIgk', start:0, channel:'TED-Ed',
-    ctx:'How the Sumerians built the world\'s first cities in the Mesopotamian landscape — rivers, mud bricks, and the birth of civilization.' },
-
-  { bigId:'geo', id:'geo_map',     type:'map',     x:420, bottom:115, emoji:'🗺️', title:'Find It On The Map' },
-
-  // ── CLIMATE ── clustered x:1200-1350, staggered heights
-  { bigId:'climate', id:'climate_text',    type:'text',    x:1200, bottom:100, emoji:'📖', title:"What's the weather like?",
-    body:`Almost no <span class="kw" onclick="toggleKw(this)">rainfall<span class="kw-tip">降雨量</span></span>
-    here. The sun beats down for most of the year.
-    Without the rivers, nothing could grow — not a single blade of grass.
-    And yet, every year without fail, the floods come.` },
-
-  { bigId:'climate', id:'climate_gallery', type:'gallery', x:1280, bottom:88,  emoji:'🖼️', title:'The Harsh Land',
-    images:[
-      { url:IMG.euphratesArt, cap:'The Euphrates at Hit, Iraq — a 1916 painting of the vast, dry landscape', tag:'HISTORICAL' },
-      { url:IMG.euphratesNow, cap:'The Euphrates today — still dry desert on both banks, just as 5,000 years ago', tag:'TODAY' },
-    ]},
-
-  { bigId:'climate', id:'climate_video',   type:'video',   x:1350, bottom:125, emoji:'🎬', title:'How Farming Planted Seeds for the Internet',
-    videoId:'3Evl0tQAdXI', start:0, channel:'TED-Ed',
-    ctx:'How the move from hunting-gathering to farming in fertile lands like Mesopotamia enabled permanent settlements and the birth of civilization.' },
-
-  // ── NATURE ── clustered x:2200-2300, staggered heights
-  { bigId:'nature', id:'nature_text',    type:'text',    x:2200, bottom:88,  emoji:'📖', title:'What does the land look like?',
-    body:`When the floods pull back, they leave behind rich, dark
-    <span class="kw" onclick="toggleKw(this)">mud<span class="kw-tip">淤泥 · 肥沃的泥土</span></span>.
-    In this mud, seeds grow faster than almost anywhere else on Earth.
-    But first, someone had to figure out how to control the water...` },
-
-  { bigId:'nature', id:'nature_video',   type:'video',   x:2260, bottom:100, emoji:'🎬', title:'Can We Create the Perfect Farm?',
-    videoId:'xFqecEtdGZ0', start:0, channel:'TED-Ed',
-    ctx:'Starting 10,000 years ago, the agricultural revolution was the turning point that made cities and civilization possible.' },
-
-  { bigId:'nature', id:'nature_gallery', type:'gallery', x:2300, bottom:120, emoji:'🖼️', title:'Farming Then & Now',
-    images:[
-      { url:IMG.agriInlay, cap:'Agricultural scenes carved in shell — Kish, Mesopotamia, ~2750-2600 BCE (Ashmolean Museum)', tag:'ANCIENT' },
-    ]},
-
-  // ── CULTURE ── clustered x:3200-3350, staggered heights
-  { bigId:'culture', id:'culture_text',    type:'text',    x:3200, bottom:110, emoji:'📖', title:'What did people create here?',
-    body:`They built towers that reached toward the sky — not to live in, but to get closer to their gods.
-    And somewhere in this city, someone picked up a piece of clay and made
-    <span class="kw" onclick="toggleKw(this)">cuneiform<span class="kw-tip">楔形文字 · wedge-shaped writing</span></span>
-    marks the world had never seen before.` },
-
-  { bigId:'culture', id:'culture_gallery', type:'gallery', x:3280, bottom:88,  emoji:'🖼️', title:'Temples & Writing',
-    images:[
-      { url:IMG.ziggurat, cap:'The Great Ziggurat of Ur, Iraq — built around 2100 BCE, still standing today', tag:'TODAY' },
-      { url:IMG.cuneiformTablet, cap:'Cuneiform writing on a clay tablet — the world\'s first writing system', tag:'ANCIENT' },
-      { url:IMG.cuneiformBM, cap:'Cuneiform tablets at the British Museum — including the Epic of Gilgamesh', tag:'MUSEUM' },
-    ]},
-
-  { bigId:'culture', id:'culture_video',   type:'video',   x:3350, bottom:130, emoji:'🎬', title:'Who Invented Writing?',
-    videoId:'CN1BdvzyMPU', start:0, channel:'TED-Ed',
-    ctx:'How Sumerian cuneiform became the world\'s first writing system — from pictographs carved in clay to an abstract script.' },
-
-  // ── ZARA ──
-  { bigId:'zara', id:'zara', type:'zara', x:4500, bottom:88, emoji:'📜', title:'Talk to Zara' },
-];
-
-const BIG_PIECES = [
-  { id:'geo',     emoji:'🌍', label:'Geo',     subIds:['geo_text','geo_gallery','geo_video'] },
-  { id:'climate', emoji:'☀️', label:'Climate', subIds:['climate_text','climate_gallery','climate_video'] },
-  { id:'nature',  emoji:'🌱', label:'Nature',  subIds:['nature_text','nature_gallery','nature_video'] },
-  { id:'culture', emoji:'🏛️', label:'Culture', subIds:['culture_text','culture_gallery','culture_video'] },
-];
-
-// ═══════════════════════════════════
-//  GATE ANIMALS
-// ═══════════════════════════════════
-const GATE_ANIMALS = {
-  geo: {
-    emoji:'🐟', name:'Fish', gateX:300, entranceAnim:'jump-up',
-    question:"Hey! Before you cross — have you ever seen a river flood? 🌊",
-    options:["Yes, it's scary!","Never...","What's a flood?"],
-    response:"Interesting! Go ahead, explorer! 🌊",
-    svg:`<svg width="130" height="130" viewBox="0 0 130 130">
-      <path d="M0 95 Q16 88 32 95 Q48 102 64 95 Q80 88 96 95 Q112 102 130 95 L130 130 L0 130Z" fill="#1a5a8a" opacity=".55"/>
-      <path d="M15 120 Q5 98 18 105 Q12 88 28 100Z" fill="#2878c0"/>
-      <ellipse cx="72" cy="82" rx="42" ry="26" fill="#3090d8"/>
-      <ellipse cx="72" cy="88" rx="28" ry="15" fill="#70c0f0" opacity=".45"/>
-      <path d="M42 72 Q56 62 70 72" fill="#2070b0"/>
-      <circle cx="98" cy="74" r="11" fill="white"/>
-      <circle cx="100" cy="74" r="7" fill="#1a3055"/>
-      <circle cx="103" cy="71" r="3" fill="white"/>
-      <path d="M107 82 Q111 87 107 87" stroke="#1a3055" stroke-width="2.5" fill="none" stroke-linecap="round"/>
-      <circle cx="118" cy="60" r="5" fill="none" stroke="#70c0f0" stroke-width="1.8" opacity=".7"/>
-      <circle cx="125" cy="48" r="3.5" fill="none" stroke="#70c0f0" stroke-width="1.5" opacity=".5"/>
-    </svg>`
-  },
-  climate: {
-    emoji:'🐪', name:'Camel', gateX:1200, entranceAnim:'slide-right',
-    question:"This land is SO dry... how do you think people survived here? 🏜️",
-    options:["They found water somewhere","They ate cacti?","No idea!"],
-    response:"Good thinking! The desert holds many secrets. 🏜️",
-    svg:`<svg width="130" height="130" viewBox="0 0 130 130">
-      <rect x="18" y="108" width="12" height="20" rx="5" fill="#a05810"/>
-      <rect x="38" y="112" width="11" height="16" rx="5" fill="#a05810"/>
-      <rect x="76" y="112" width="11" height="16" rx="5" fill="#a05810"/>
-      <rect x="96" y="108" width="12" height="20" rx="5" fill="#a05810"/>
-      <ellipse cx="62" cy="90" rx="46" ry="28" fill="#d07820"/>
-      <ellipse cx="44" cy="66" rx="20" ry="24" fill="#c87018"/>
-      <ellipse cx="72" cy="60" rx="18" ry="22" fill="#d07820"/>
-      <rect x="84" y="62" width="18" height="34" rx="9" fill="#c87018"/>
-      <ellipse cx="100" cy="50" rx="18" ry="14" fill="#d07820"/>
-      <circle cx="110" cy="44" r="8" fill="white"/>
-      <circle cx="112" cy="44" r="5" fill="#3d2206"/>
-      <circle cx="114" cy="42" r="2" fill="white"/>
-      <ellipse cx="116" cy="56" rx="6" ry="5" fill="#b06010"/>
-      <path d="M108 58 Q113 62 118 58" stroke="#8a4010" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-      <path d="M84 44 Q88 38 94 38 Q90 35 88 38" stroke="#c87018" stroke-width="3" fill="none" stroke-linecap="round"/>
-    </svg>`
-  },
-  nature: {
-    emoji:'🐂', name:'Bull', gateX:2200, entranceAnim:'slide-right',
-    question:"See all these fields? What made this soil so good for farming? 🌾",
-    options:["The river floods!","People worked hard","Magic?"],
-    response:"Moo-velous answer! Go explore! 🌾",
-    svg:`<svg width="130" height="130" viewBox="0 0 130 130">
-      <rect x="20" y="108" width="13" height="20" rx="6" fill="#9a7040"/>
-      <rect x="40" y="112" width="12" height="16" rx="5" fill="#9a7040"/>
-      <rect x="76" y="112" width="12" height="16" rx="5" fill="#9a7040"/>
-      <rect x="96" y="108" width="13" height="20" rx="6" fill="#9a7040"/>
-      <ellipse cx="62" cy="88" rx="48" ry="30" fill="#c8a060"/>
-      <ellipse cx="62" cy="96" rx="35" ry="18" fill="#d8b070" opacity=".5"/>
-      <rect x="78" y="60" width="20" height="36" rx="10" fill="#c8a060"/>
-      <ellipse cx="92" cy="54" rx="22" ry="17" fill="#c8a060"/>
-      <path d="M74 44 Q68 30 62 38" stroke="#a07840" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <path d="M110 44 Q116 30 122 38" stroke="#a07840" stroke-width="5" fill="none" stroke-linecap="round"/>
-      <circle cx="86" cy="48" r="8.5" fill="white"/>
-      <circle cx="88" cy="48" r="5.5" fill="#3d2206"/>
-      <circle cx="90" cy="46" r="2" fill="white"/>
-      <ellipse cx="100" cy="62" rx="8" ry="6" fill="#b08848"/>
-      <circle cx="100" cy="59" r="3" fill="#8a6030" opacity=".5"/>
-      <path d="M90 64 Q95 68 100 64" stroke="#8a6030" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-    </svg>`
-  },
-  culture: {
-    emoji:'🐈', name:'Cat', gateX:3200, entranceAnim:'jump-down',
-    question:"This temple is huge... why do you think people built it so tall? ✨",
-    options:["To reach the gods","To show off","I wonder too!"],
-    response:"Purrfect! The gods are watching. ✨",
-    svg:`<svg width="130" height="130" viewBox="0 0 130 130">
-      <path d="M75 20 Q80 5 90 12 L88 30Z" fill="#e07030"/>
-      <path d="M105 20 Q112 5 118 14 L112 32Z" fill="#e07030"/>
-      <ellipse cx="95" cy="42" rx="25" ry="22" fill="#e87838"/>
-      <ellipse cx="95" cy="46" rx="18" ry="14" fill="#f8d0a0" opacity=".6"/>
-      <circle cx="84" cy="38" r="9" fill="white"/>
-      <circle cx="86" cy="38" r="6" fill="#2d1a06"/>
-      <circle cx="88" cy="36" r="2.5" fill="white"/>
-      <circle cx="106" cy="38" r="9" fill="white"/>
-      <circle cx="108" cy="38" r="6" fill="#2d1a06"/>
-      <circle cx="110" cy="36" r="2.5" fill="white"/>
-      <path d="M88 50 Q95 55 102 50" stroke="#c05020" stroke-width="2.2" fill="none" stroke-linecap="round"/>
-      <ellipse cx="95" cy="54" rx="4" ry="3" fill="#e07868"/>
-      <line x1="78" y1="50" x2="60" y2="48" stroke="#c07030" stroke-width="1.5" opacity=".7"/>
-      <line x1="78" y1="53" x2="60" y2="54" stroke="#c07030" stroke-width="1.5" opacity=".7"/>
-      <line x1="112" y1="50" x2="130" y2="48" stroke="#c07030" stroke-width="1.5" opacity=".7"/>
-      <line x1="112" y1="53" x2="130" y2="54" stroke="#c07030" stroke-width="1.5" opacity=".7"/>
-      <ellipse cx="62" cy="88" rx="38" ry="30" fill="#e07030"/>
-      <ellipse cx="62" cy="96" rx="26" ry="18" fill="#f8d0a0" opacity=".5"/>
-      <rect x="20" y="108" width="11" height="18" rx="5" fill="#c05820"/>
-      <rect x="38" y="112" width="10" height="14" rx="5" fill="#c05820"/>
-      <rect x="74" y="112" width="10" height="14" rx="5" fill="#c05820"/>
-      <rect x="90" y="108" width="11" height="18" rx="5" fill="#c05820"/>
-      <path d="M92 65 Q80 95 70 120" stroke="#e07030" stroke-width="8" fill="none" stroke-linecap="round"/>
-      <path d="M70 120 Q58 128 55 118" stroke="#e07030" stroke-width="8" fill="none" stroke-linecap="round"/>
-    </svg>`
-  }
+/* ── GALLERY DATA (verify Wikimedia URLs before deploy) ────────────────────── */
+const GALLERY = {
+  area_1:[
+    { url:'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Mesopotamia_and_Surrounding_Area_2.svg/640px-Mesopotamia_and_Surrounding_Area_2.svg.png',
+      tag:'MESOPOTAMIA MAP', cap:'Nisaba: See those two rivers? That\'s Tigris on the right and Euphrates on the left. My city Ur is right near where they meet the sea!' },
+    { url:'https://upload.wikimedia.org/wikipedia/commons/thumb/b/ba/Flood_control_Iraq.jpg/640px-Flood_control_Iraq.jpg',
+      tag:'FLOOD PLAIN', cap:'Nisaba: Every year the rivers flood, and the water leaves behind dark rich mud. That mud makes the best farmland in the world. That\'s why people came here!' },
+  ],
+  area_2:[
+    { url:'https://upload.wikimedia.org/wikipedia/commons/thumb/8/80/Great_Ziggurat_of_Ur.jpg/640px-Great_Ziggurat_of_Ur.jpg',
+      tag:'ZIGGURAT OF UR', cap:'Nisaba: My city! The big stepped temple is the ziggurat — and see all those mud brick walls? Every building looks just like that.' },
+    { url:'https://upload.wikimedia.org/wikipedia/commons/thumb/5/5c/Mudbrick-construction.jpg/640px-Mudbrick-construction.jpg',
+      tag:'MUD BRICKS', cap:'Nisaba: You mix mud with straw, press it into a mold, and leave it in the sun. No stone, no big trees — but we have all the mud and sun we need!' },
+  ],
+  area_3:[
+    { url:'https://upload.wikimedia.org/wikipedia/commons/thumb/7/7c/Barley_field.jpg/640px-Barley_field.jpg',
+      tag:'BARLEY FIELD', cap:'Nisaba: Barley is everything! We grind it into flour for bread, make it into porridge, even a drink. My mom\'s barley bread... it\'s the best smell in the world.' },
+    { url:'https://upload.wikimedia.org/wikipedia/commons/thumb/1/1c/Date_Palms_in_Iraq.jpg/640px-Date_Palms_in_Iraq.jpg',
+      tag:'DATE PALMS', cap:'Nisaba: Dates! Sweet and chewy. We eat them fresh, or dry them so they last all year. I always kept some in my pocket for the walk to school.' },
+  ],
+  area_4:[
+    { url:'https://upload.wikimedia.org/wikipedia/commons/thumb/a/a9/Cuneiform_script2.jpg/640px-Cuneiform_script2.jpg',
+      tag:'CUNEIFORM TABLET', cap:'Nisaba: I can read this! See how the marks look like little wedges? You press a reed stylus into soft clay — press, turn, press again. My family are scribes, so I learned young.' },
+    { url:'https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Cuneiform_tablet-_administrative_account_of_barley_distribution_with_cylinder_seal_impression_of_a_male_figure%2C_hunting_dogs%2C_and_boars%2C_3100-2900_BCE.jpg/640px-Cuneiform_tablet-_administrative_account_of_barley_distribution_with_cylinder_seal_impression_of_a_male_figure%2C_hunting_dogs%2C_and_boars%2C_3100-2900_BCE.jpg',
+      tag:'BARLEY RECORDS', cap:'Nisaba: This one says how much barley was given to workers! My dad wrote things like this. Records, lists, letters — that\'s what scribes do.' },
+  ],
 };
 
-const CHAIN_DATA = [
-  { icon:'🏔️', label:'Origin', desc:'Snow melts in distant mountains every spring' },
-  { icon:'🌊', label:'Two Rivers', desc:'Tigris & Euphrates carry the melt-water south' },
-  { icon:'💧', label:'Annual Floods', desc:'Every year, the rivers flood the dry plains' },
-  { icon:'🌱', label:'Fertile Soil', desc:'Floodwaters leave behind rich, dark mud — perfect for seeds' },
-  { icon:'🌾', label:'Farming', desc:'People farmed the fertile land and controlled the water with canals' },
-  { icon:'🏙️', label:'Food Surplus', desc:'More food than one family needs → people can specialize in other work' },
-  { icon:'🏛️', label:'Cities', desc:'Specialists gather → the world\'s first cities are born' },
-  { icon:'📜', label:'Writing', desc:'Cities need records → cuneiform, the world\'s first writing system' },
+/* ── AREAS CONFIG ──────────────────────────────────────────────────────────── */
+const WORLD_W = 5000, SPEED = 5;
+const AREAS = {
+  area_1:{ zoneL:100,  zoneR:960,  apiKey:'area_1', label:'Tigris & Euphrates River Basin',
+    opener:'Oh! Oh wow... those rivers! They look just like the Tigris and Euphrates back home!',
+    actionBtn:{ label:'🗺️ See the Map', fn:'openMap' }, shardTurn:4,
+    reviewKeywords:['flood','river','silt','soil','mud','water','rich','fertile','euphrates','tigris','plain'],
+    reviewQ:'What makes the land near the rivers so good for farming?' },
+  area_2:{ zoneL:1020, zoneR:1920, apiKey:'area_2', label:'Mud-Brick Construction',
+    opener:'Mud bricks! I know EVERYTHING about mud bricks.',
+    actionBtn:{ label:'🖼️ See the Gallery', fn:'openGallery' }, shardTurn:4,
+    reviewKeywords:['mud','straw','bricks','sun','dry','no stone','no trees','heat','baked'],
+    reviewQ:'Why did people in Mesopotamia use mud bricks instead of stone?' },
+  area_3:{ zoneL:2020, zoneR:2960, apiKey:'area_3', label:'Food of the Two Rivers',
+    opener:'Mmm... I can\'t smell it, but look! Is that a barley field?',
+    actionBtn:{ label:'🎬 Watch a Video', fn:'openVideo' }, shardTurn:4,
+    reviewKeywords:['barley','bread','dates','fish','goat','food','grain','eat'],
+    reviewQ:"What was Nisaba's favorite food from home?",
+    hasEmotionalPause:true },
+  area_4:{ zoneL:3020, zoneR:3960, apiKey:'area_4', label:'Cuneiform: The First Writing',
+    opener:'Writing! Real cuneiform! I can read this — my family are scribes!',
+    actionBtn:{ label:'✍️ Try Cuneiform', fn:'openCuneiform' }, shardTurn:4,
+    reviewKeywords:['reed','clay','stylus','cuneiform','tablet','wedge','scribe','press'],
+    reviewQ:'What tool and surface did Nisaba use to write?' },
+  area_5:{ zoneL:4100, zoneR:4750, apiKey:'area_5', label:'The Seal Door',
+    opener:null, actionBtn:null, shardTurn:null },
+};
+
+/* ── AREA 5 SCRIPTED LINES ─────────────────────────────────────────────────── */
+const A5_LINES = [
+  { text:'Yoyo... I know this door. This is the temple door from back home. This is REALLY it!', pose:'reach', actions:[] },
+  { text:'See those five circles? Each one needs a piece of my memory. Can you help me place them?', pose:'stand', actions:[{label:'Place the shards →', fn:'startPlaceShards'}] },
+  { text:'(Place your memory shards in the door slots below)', pose:'stand', actions:[], isPlaceUI:true },
+  { text:'It\'s GLOWING! It\'s working, Yoyo! I can feel it — I\'m going home!', pose:'wave', actions:[{label:'Continue →', fn:'a5Next'}] },
+  { text:'Thank you, Yoyo. I will never forget you.\n\nTake this — my clay pendant. So you\'ll remember me too.\n\n...Goodbye.', pose:'quiet', actions:[{label:'Goodbye, Nisaba 👋', fn:'finishGame'}] },
 ];
 
+/* ── CUNEIFORM SYMBOLS & BADGE ANSWERS ─────────────────────────────────────── */
+const CUNEIF = ['𒀭','𒁲','𒄑','𒅗','𒆳','𒂗','𒀯','𒁀','𒃻','𒅃','𒈗','𒌷'];
+const ANSWERS = {
+  bq1:['flood','river','silt','mud','fertile','water','rich','soil'],
+  bq2:['mud','straw','no stone','sun','dry','baked','brick'],
+  bq3:['barley','bread','dates','barley bread'],
+  bq4:['reed','clay','stylus','cuneiform','tablet','press'],
+  bq5:['ur','sumer'],
+};
 
-// ═══════════════════════════════════
-//  STATE
-// ═══════════════════════════════════
+/* ── STATE ─────────────────────────────────────────────────────────────────── */
 const S = {
-  yoyoX:200, dir:1, walking:false,
-  collected: new Set(),
-  galleryIdx: {},
-  zaraRound:0, history:[], sending:false,
-  keys:{ ArrowLeft:false, ArrowRight:false },
-  nearbyId:null, raf:null,
-  leafletLoaded:false, leafletMap:null,
-  readTimer:null,
-  gateCleared: new Set(JSON.parse(sessionStorage.getItem('yoyo_gates_cleared')||'[]')),
-  gateActive: false,
-  activeGateId: null,
+  yoyoX:240, dir:1, walking:false, keys:{},
+  raf:null, phase:'bedroom',
+  currentArea:null, areaCompleted:{}, shards:0,
+  bedroomTurns:0, areaTurns:{}, activeHistory:[],
+  sending:false, emotionalPauseDone:false,
+  galleryIdx:0, galleryArea:null, leafletMap:null,
+  a5Stage:0, doorShardsPlaced:0,
 };
 
-// ═══════════════════════════════════
-//  INIT
-// ═══════════════════════════════════
-(function init(){
-  buildCollectibles();
-  buildHud();
-  showGame();
-})();
+/* ── DOM SHORTCUTS ─────────────────────────────────────────────────────────── */
+const $  = id => document.getElementById(id);
+const nisOver   = () => $('nisaba-overlay');
+const nisBubble = () => $('nis-bubble');
+const nisInput  = () => $('nis-input');
+const nisSend   = () => $('nis-send');
+const nisActions= () => $('nis-actions');
+const nisChar   = () => $('nis-char');
 
-// ═══════════════════════════════════
-//  SCREENS
-// ═══════════════════════════════════
-function showScreen(id){
-  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
-  document.getElementById('screen-'+id).classList.add('active');
+/* ── INIT ───────────────────────────────────────────────────────────────────── */
+window.addEventListener('DOMContentLoaded', () => {
+  const sv = localStorage.getItem('meso_shards');
+  if (sv) S.shards = parseInt(sv, 10) || 0;
+  const av = localStorage.getItem('meso_areas');
+  if (av) try { S.areaCompleted = JSON.parse(av); } catch(e){}
+  startBedroom();
+});
+
+/* ── SCREEN HELPER ──────────────────────────────────────────────────────────── */
+function showScreen(name) {
+  ['screen-bedroom','screen-transition','screen-game','screen-bedroom-end'].forEach(id => {
+    const el = $(id);
+    if (el) el.classList.remove('active');
+  });
+  const target = { bedroom:'screen-bedroom', transition:'screen-transition',
+                   game:'screen-game', end:'screen-bedroom-end' }[name];
+  if (target && $(target)) $(target).classList.add('active');
 }
-function showGame(){
+
+/* ── BEDROOM OPENING ────────────────────────────────────────────────────────── */
+let bedBubble = null, bedInputRow = null;
+
+function startBedroom() {
+  showScreen('bedroom');
+  S.phase = 'bedroom';
+  setTimeout(() => {
+    $('golden-flash').classList.add('go');
+    setTimeout(() => {
+      const bn = $('bedroom-nisaba');
+      bn.innerHTML = NIS_SVG.wave;
+      bn.classList.add('visible');
+      // Nisaba appears first — bubble + input appear 2s later
+      setTimeout(() => {
+        const firstMsg = 'Hi! My name is Nisaba. I am from Ur — an ancient city by two rivers.\n\nI don\'t know how I got here! My clay seal glowed... and then I woke up in this room. Can you help me find my way home?';
+        showBedroomBubble(firstMsg, 'wave');
+      }, 2000);
+    }, 1500);
+  }, 800);
+}
+
+function showBedroomBubble(text, pose) {
+  if (!bedBubble) {
+    bedBubble = document.createElement('div');
+    bedBubble.id = 'bed-bubble';
+    bedBubble.style.cssText = 'position:absolute;bottom:295px;right:7%;z-index:10;' +
+      'background:rgba(17,9,4,.96);border:2px solid rgba(240,192,64,.5);border-radius:18px;' +
+      'border-bottom-right-radius:4px;padding:14px 18px;max-width:340px;' +
+      'color:#F5ECD7;font-size:.9rem;line-height:1.68;white-space:pre-line;';
+    $('screen-bedroom').appendChild(bedBubble);
+
+    bedInputRow = document.createElement('div');
+    bedInputRow.id = 'bed-input-row';
+    bedInputRow.style.cssText = 'position:absolute;bottom:250px;right:7%;z-index:10;' +
+      'display:flex;gap:8px;width:340px;';
+    bedInputRow.innerHTML = '<input id="bed-input" autocomplete="off" ' +
+      'style="flex:1;background:rgba(255,245,220,.88);border:1.5px solid rgba(240,192,64,.6);' +
+      'border-radius:50px;padding:9px 16px;color:#2a1006;font-family:Nunito,sans-serif;' +
+      'font-size:.88rem;outline:none;" placeholder="Say something to Nisaba..."' +
+      ' onkeydown="if(event.key===\'Enter\'&&!event.isComposing)sendBedroom()"/>' +
+      '<button onclick="sendBedroom()" style="width:38px;height:38px;border-radius:50%;' +
+      'background:linear-gradient(135deg,#D4A96A,#C1440E);border:none;color:white;' +
+      'font-size:.95rem;cursor:pointer;flex-shrink:0;">→</button>';
+    $('screen-bedroom').appendChild(bedInputRow);
+  }
+  bedBubble.textContent = text;
+  if (pose) { const bn=$('bedroom-nisaba'); if(bn) bn.innerHTML = NIS_SVG[pose]||NIS_SVG.stand; }
+}
+
+async function sendBedroom() {
+  const inp = $('bed-input');
+  if (!inp) return;
+  const text = inp.value.trim();
+  if (!text || S.sending) return;
+  S.sending = true; inp.value = '';
+  S.bedroomTurns++;
+  S.activeHistory.push({ role:'user', content:text });
+  showBedroomBubble('...', 'stand');
+  const lower = text.toLowerCase();
+  const museumHint = ['museum','exhibit','old','ancient','history','artifact','place','things','stuff','explore','gallery'].some(w=>lower.includes(w));
+  try {
+    const res = await fetch('/api/nisaba', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ messages:S.activeHistory, area:'opening' }),
+    });
+    const data = await res.json();
+    const reply = data.reply || "Hmm...";
+    S.activeHistory.push({ role:'assistant', content:reply });
+    showBedroomBubble(reply, museumHint ? 'wave' : 'stand');
+  } catch(e) {
+    showBedroomBubble("I don\'t know this place at all... do you know somewhere with really old things?", 'reach');
+  }
+  S.sending = false;
+  if (S.bedroomTurns >= 2 || museumHint) addMuseumButton();
+}
+
+function addMuseumButton() {
+  if ($('btn-goto-museum')) return;
+  const btn = document.createElement('button');
+  btn.id = 'btn-goto-museum';
+  btn.textContent = '🏛️ Take Nisaba to the Vancouver Museum →';
+  btn.style.cssText = 'position:absolute;bottom:205px;right:7%;z-index:10;' +
+    'background:linear-gradient(135deg,#F0C040,#C1440E);border:none;border-radius:50px;' +
+    'padding:12px 22px;color:white;font-family:Nunito,sans-serif;font-weight:800;' +
+    'font-size:.9rem;cursor:pointer;';
+  btn.onclick = goToMuseum;
+  $('screen-bedroom').appendChild(btn);
+}
+
+function goToMuseum() {
+  showBedroomBubble('YES! Let\'s go! Maybe they have something from my city!', 'wave');
+  setTimeout(startTransition, 1500);
+}
+
+/* ── TRANSITION ─────────────────────────────────────────────────────────────── */
+function startTransition() {
+  showScreen('transition');
+  S.phase = 'transition';
+  setTimeout(finishTransition, 2200);
+}
+
+function finishTransition() {
   showScreen('game');
-  if(!S.raf){ startLoop(); }
-  document.addEventListener('keydown', onKey);
-  document.addEventListener('keyup',   offKey);
+  S.phase = 'game';
+  $('shard-bar').classList.add('on');
+  $('museum-banner').classList.add('on');
+  $('hud-back').classList.add('on');
+  // Restore shard slots
+  for (let i = 1; i <= S.shards; i++) fillShardSlot(i);
+  // Walk hint
+  const hint = $('walk-hint');
+  if (hint) { hint.style.display='block'; setTimeout(()=>hint.style.display='none', 4000); }
+  S.yoyoX = 240;
+  positionYoyo();
+  startLoop();
 }
 
-// ═══════════════════════════════════
-//  BUILD COLLECTIBLES
-// ═══════════════════════════════════
-function buildCollectibles(){
-  const fg = document.getElementById('fg-layer');
-  ALL_PIECES.forEach(p=>{
-    const el = document.createElement('div');
-    el.className = 'collect-item' + (p.type==='zara' ? ' zara-item locked' : '');
-    el.id = 'ci-'+p.id;
-    el.style.left = p.x+'px';
-    el.style.bottom = (p.bottom||88)+'px';
-    el.innerHTML = `<div class="ci-orb">${p.emoji}</div>`;
-    el.onclick = () => triggerPiece(p.id);
-    fg.appendChild(el);
-  });
+/* ── GAME LOOP ──────────────────────────────────────────────────────────────── */
+function startLoop() {
+  window.addEventListener('keydown', e => { S.keys[e.code] = true; });
+  window.addEventListener('keyup',   e => { S.keys[e.code] = false; });
+  // Touch/swipe support
+  let touchX = 0;
+  document.addEventListener('touchstart', e => { touchX = e.touches[0].clientX; }, {passive:true});
+  document.addEventListener('touchmove',  e => {
+    if (S.phase !== 'game') return;
+    const dx = e.touches[0].clientX - touchX;
+    if (Math.abs(dx) > 8 && !nisOver().classList.contains('on') && !$('card-modal').classList.contains('on')) {
+      S.yoyoX = Math.max(50, Math.min(WORLD_W-50, S.yoyoX + (dx>0?SPEED*2:-SPEED*2)));
+      S.dir = dx > 0 ? 1 : -1;
+      touchX = e.touches[0].clientX;
+    }
+  }, {passive:true});
+  requestAnimationFrame(tick);
 }
 
-function buildHud(){
-  const wrap = document.getElementById('hud-right');
-  BIG_PIECES.forEach(bp=>{
-    const div = document.createElement('div');
-    div.className = 'bp-hud';
-    div.id = 'bp-'+bp.id;
-    div.innerHTML = `<span class="bp-emoji">${bp.emoji}</span>
-      <div class="bp-dots">${bp.subIds.map(sid=>`<div class="bp-dot" id="dot-${sid}"></div>`).join('')}</div>`;
-    wrap.appendChild(div);
-  });
-}
-
-// ═══════════════════════════════════
-//  GAME LOOP
-// ═══════════════════════════════════
-function startLoop(){ if(S.raf) cancelAnimationFrame(S.raf); loop(); }
-
-function loop(){
-  S.raf = requestAnimationFrame(loop);
-  let moved = false;
-  if(!S.gateActive){
-    if(S.keys.ArrowLeft  && S.yoyoX > 60)         { S.yoyoX -= SPEED; S.dir=-1; moved=true; }
-    if(S.keys.ArrowRight && S.yoyoX < WORLD_W-60)  { S.yoyoX += SPEED; S.dir= 1; moved=true; }
+function tick() {
+  if (S.phase !== 'game') return;
+  const blocked = nisOver().classList.contains('on') || $('card-modal').classList.contains('on');
+  if (!blocked) {
+    let dx = 0;
+    if (S.keys['ArrowLeft']  || S.keys['KeyA']) dx = -SPEED;
+    if (S.keys['ArrowRight'] || S.keys['KeyD']) dx =  SPEED;
+    if (dx) {
+      S.yoyoX = Math.max(50, Math.min(WORLD_W-50, S.yoyoX + dx));
+      S.dir = dx > 0 ? 1 : -1;
+      $('yoyo-el').classList.add('walking');
+      $('yoyo-el').classList.toggle('face-left', S.dir < 0);
+    } else {
+      $('yoyo-el').classList.remove('walking');
+    }
   }
-  S.walking = moved;
+  positionYoyo();
+  checkArea();
+  requestAnimationFrame(tick);
+}
 
+function positionYoyo() {
   const vw = window.innerWidth;
-  const camX = Math.max(0, Math.min(WORLD_W-vw, S.yoyoX - vw*ANCHOR));
+  const anchorX = Math.round(vw * 0.38);
+  let cam = S.yoyoX - anchorX;
+  cam = Math.max(0, Math.min(WORLD_W - vw, cam));
+  $('yoyo-el').style.left = anchorX + 'px';
+  $('bg-layer').style.transform  = `translateX(${-cam * 0.3}px)`;
+  $('mid-layer').style.transform = `translateX(${-cam * 0.6}px)`;
+  $('fg-layer').style.transform  = `translateX(${-cam}px)`;
+}
 
-  document.getElementById('bg-layer').style.transform  = `translateX(${-camX*0.3}px)`;
-  document.getElementById('mid-layer').style.transform = `translateX(${-camX*0.6}px)`;
-  document.getElementById('fg-layer').style.transform  = `translateX(${-camX}px)`;
-
-  const yoyo = document.getElementById('yoyo-el');
-  yoyo.style.left = (S.yoyoX - camX)+'px';
-  yoyo.classList.toggle('walking', S.walking);
-  yoyo.classList.toggle('face-left', S.dir===-1);
-
-  // Proximity check
-  let nearDist = Infinity, nearId = null;
-  ALL_PIECES.forEach(p=>{
-    const dist = Math.abs(S.yoyoX - p.x);
-    const el = document.getElementById('ci-'+p.id);
-    if(!el) return;
-    const done = S.collected.has(p.id);
-    const zaraLocked = p.type==='zara' && !allBigPiecesComplete();
-    // nearby glow only for uncollected items
-    el.classList.toggle('nearby', dist < PROX && !done && !zaraLocked);
-    el.classList.toggle('done', done);
-    if(p.type==='zara'){
-      el.classList.toggle('locked', zaraLocked);
+/* ── AREA DETECTION ──────────────────────────────────────────────────────────── */
+function checkArea() {
+  for (const [key, area] of Object.entries(AREAS)) {
+    if (S.yoyoX >= area.zoneL && S.yoyoX <= area.zoneR) {
+      if (S.currentArea !== key) enterArea(key);
+      return;
     }
-    // SPACE target: nearest piece regardless of done, only skip locked Zara
-    if(dist < nearDist && !zaraLocked){ nearDist=dist; nearId=p.id; }
+  }
+  // Not in any zone
+  if (S.currentArea && !nisOver().classList.contains('on')) {
+    S.currentArea = null;
+    $('museum-banner').textContent = '🏛️ Vancouver Museum · Mesopotamia Special Exhibit';
+  }
+}
+
+function enterArea(key) {
+  S.currentArea = key;
+  if (key === 'area_5') { enterArea5(); return; }
+  const area = AREAS[key];
+  if (!S.areaTurns[key]) S.areaTurns[key] = 0;
+  $('museum-banner').textContent = `🏛️ ${area.label}`;
+  nisOver().classList.add('on');
+  setNisabaPose('stand');
+
+  if (S.areaCompleted[key]) {
+    const revisit = {
+      area_1:'I already told you about these rivers! Tigris and Euphrates. My home!',
+      area_2:'Remember? Mud bricks and straw. No stone quarries where I\'m from!',
+      area_3:'Yes — the food exhibit. I still miss my mom\'s barley bread...',
+      area_4:'The cuneiform exhibit! Clay and a reed stylus. I loved writing.',
+    };
+    showNisabaMsg(revisit[key] || 'We\'ve been here before!');
+    setActions([{label:'Close', fn:'closeOverlay'}]);
+    return;
+  }
+
+  showNisabaMsg(area.opener);
+  // Ensure strict user/assistant alternation required by Claude API
+  if (S.activeHistory.length === 0 || S.activeHistory[S.activeHistory.length-1].role === 'assistant') {
+    S.activeHistory.push({ role:'user', content:`[Yoyo and Nisaba walk to the ${area.label} exhibit]` });
+  }
+  S.activeHistory.push({ role:'assistant', content:area.opener });
+  setActions(buildAreaActions(key));
+}
+
+/* ── AREA DIALOG ─────────────────────────────────────────────────────────────── */
+function buildAreaActions(key) {
+  const area = AREAS[key];
+  const turn = S.areaTurns[key] || 0;
+  const acts = [];
+  if (area.actionBtn) acts.push({ label:area.actionBtn.label, fn:area.actionBtn.fn });
+  acts.push({ label:'Tell me more!', fn:'continueAreaChat' });
+  if (turn >= area.shardTurn) acts.push({ label:'Got it! → Next area', fn:'completeArea', style:'continue' });
+  return acts;
+}
+
+function continueAreaChat() {
+  if (!S.currentArea || S.currentArea==='area_5') return;
+  S.activeHistory.push({ role:'user', content:'Tell me more!' });
+  callNisaba(S.currentArea, []);
+}
+
+function sendNisaba() {
+  const inp = nisInput();
+  const text = (inp && inp.value.trim()) || '';
+  if (!text || S.sending || !S.currentArea || S.currentArea==='area_5') return;
+  if (inp) inp.value = '';
+  S.activeHistory.push({ role:'user', content:text });
+  callNisaba(S.currentArea, []);
+}
+
+async function callNisaba(areaKey, extra) {
+  if (S.sending) return;
+  S.sending = true;
+  const snd = nisSend(); const inp = nisInput();
+  if(snd) snd.disabled = true; if(inp) inp.disabled = true;
+  showTyping();
+  try {
+    const msgs = [...S.activeHistory, ...extra];
+    const res = await fetch('/api/nisaba', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({ messages:msgs, area:areaKey }),
+    });
+    const data = await res.json();
+    const reply = data.reply || "Hmm, I got confused. Try again?";
+    S.activeHistory.push(...extra, { role:'assistant', content:reply });
+    if (!S.areaTurns[areaKey]) S.areaTurns[areaKey] = 0;
+    S.areaTurns[areaKey]++;
+    showNisabaMsg(reply);
+    const turn = S.areaTurns[areaKey];
+    // Area 3 emotional pause — first time, after turn 1
+    if (areaKey==='area_3' && turn===1 && !S.emotionalPauseDone) {
+      triggerEmotionalPause();
+    } else {
+      setActions(buildAreaActions(areaKey));
+      if (turn >= (AREAS[areaKey].shardTurn||4) && !S.areaCompleted[areaKey]) awardShard(areaKey);
+    }
+  } catch(e) {
+    showNisabaMsg('Sorry, I got confused for a moment. Can you try again?');
+    setActions([{label:'Try again', fn:'continueAreaChat'}]);
+  }
+  S.sending = false;
+  if(snd) snd.disabled = false; if(inp) inp.disabled = false;
+}
+
+function completeArea() {
+  const key = S.currentArea;
+  if (!key || key==='area_5') return;
+  if (!S.areaCompleted[key]) awardShard(key);
+  S.areaCompleted[key] = true;
+  localStorage.setItem('meso_areas', JSON.stringify(S.areaCompleted));
+  closeOverlay();
+  S.currentArea = null;
+  $('museum-banner').textContent = '🏛️ Vancouver Museum · Mesopotamia Special Exhibit';
+}
+
+function closeOverlay() { nisOver().classList.remove('on'); }
+
+/* ── OVERLAY HELPERS ─────────────────────────────────────────────────────────── */
+function showNisabaMsg(text) {
+  const b = nisBubble(); if(b) b.textContent = text;
+  setNisabaPose('stand');
+}
+
+function showTyping() {
+  const b = nisBubble();
+  if(b) b.innerHTML = '<div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>';
+}
+
+function setNisabaPose(pose) {
+  const c = nisChar(); if(c) c.innerHTML = NIS_SVG[pose]||NIS_SVG.stand;
+}
+
+function setActions(actions) {
+  const na = nisActions(); if(!na) return;
+  na.innerHTML = '';
+  // Hide free-text input when action buttons drive the conversation
+  const row = $('nis-input-row');
+  if (row) row.style.display = actions.length > 0 ? 'none' : '';
+  actions.forEach(act => {
+    const btn = document.createElement('button');
+    btn.textContent = act.label;
+    btn.className = act.style==='continue' ? 'nis-continue' : 'nis-act';
+    btn.onclick = () => window[act.fn] && window[act.fn]();
+    na.appendChild(btn);
   });
-  S.nearbyId = nearDist < PROX ? nearId : null;
+}
 
-  // Gate animal check — only on game screen, not while gate is active
-  if(!S.gateActive && document.getElementById('screen-game').classList.contains('active')){
-    for(const [zoneId, gate] of Object.entries(GATE_ANIMALS)){
-      if(!S.gateCleared.has(zoneId) && Math.abs(S.yoyoX - gate.gateX) < 200){
-        showGateAnimal(zoneId); break;
-      }
+/* ── SHARDS ──────────────────────────────────────────────────────────────────── */
+function awardShard(areaKey) {
+  if (S.areaCompleted[areaKey]) return;
+  S.shards++;
+  fillShardSlot(S.shards);
+  localStorage.setItem('meso_shards', S.shards);
+  showToast(`✦ Memory Shard ${S.shards} recovered!`);
+}
+
+function fillShardSlot(n) {
+  const el = $(`shard-${n}`);
+  if(el) el.classList.add('filled');
+}
+
+/* ── AREA 3: EMOTIONAL PAUSE ────────────────────────────────────────────────── */
+function triggerEmotionalPause() {
+  S.emotionalPauseDone = true;
+  setNisabaPose('quiet');
+  showNisabaMsg('...');
+  setActions([]);
+  // Emotional pause: show input so Yoyo can choose to comfort Nisaba
+  const row = $('nis-input-row');
+  if (row) row.style.display = '';
+  const inp = nisInput(); const snd = nisSend();
+  if(inp) inp.disabled = true; if(snd) snd.disabled = true;
+
+  let handled = false;
+  const afterPause = (userText) => {
+    if (handled) return;
+    handled = true;
+    if(inp) { inp.disabled=false; inp.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing)sendNisaba();}; }
+    if(snd) { snd.disabled=false; snd.onclick=sendNisaba; }
+    setNisabaPose('stand');
+    const extra = userText ? [{ role:'user', content:`[Yoyo says during quiet moment: "${userText}"]` }] : [];
+    if (userText) S.activeHistory.push({ role:'user', content:userText });
+    callNisaba('area_3', extra);
+  };
+
+  // Override input for this one reply
+  if(snd) snd.onclick = () => {
+    const t = inp && inp.value.trim();
+    if(inp) inp.value='';
+    afterPause(t || '');
+  };
+  if(inp) inp.onkeydown = e => {
+    if (e.key==='Enter' && !e.isComposing) {
+      const t = inp.value.trim(); inp.value='';
+      afterPause(t || '');
     }
-  }
-}
+  };
 
-// ═══════════════════════════════════
-//  KEYBOARD
-// ═══════════════════════════════════
-function onKey(e){
-  // Only handle game controls when the game screen is active
-  if(!document.getElementById('screen-game').classList.contains('active')) return;
-  if(e.key==='ArrowLeft'||e.key==='ArrowRight'){ S.keys[e.key]=true; e.preventDefault(); }
-  if(e.key===' ' && S.nearbyId){ e.preventDefault(); triggerPiece(S.nearbyId); }
-}
-function offKey(e){ if(e.key in S.keys) S.keys[e.key]=false; }
-
-function triggerPiece(id){
-  const p = ALL_PIECES.find(x=>x.id===id);
-  if(!p) return;
-  if(p.type==='zara'){
-    if(!allBigPiecesComplete()) return; // still locked
-    initZara(); return;
-  }
-  openCard(p); // always openable, even if already collected
-}
-
-// ═══════════════════════════════════
-//  CARD MODAL
-// ═══════════════════════════════════
-function openCard(p){
-  const done = S.collected.has(p.id);
-  let inner = '';
-
-  if(p.type==='text'){
-    inner = `<div class="card-type-badge">📖 TEXT FRAGMENT</div>
-      <span class="card-emoji">${p.emoji}</span>
-      <h2 class="card-title">${p.title}</h2>
-      <p class="card-body">${p.body}</p>
-      <p class="card-hint">💡 Click underlined words for Chinese</p>`;
-  }
-  else if(p.type==='gallery'){
-    const idx = S.galleryIdx[p.id] || 0;
-    const img = p.images[idx];
-    const dots = p.images.map((_,i)=>`<div class="g-dot${i===idx?' active':''}"></div>`).join('');
-    inner = `<div class="card-type-badge">🖼️ IMAGE GALLERY</div>
-      <h2 class="card-title">${p.title}</h2>
-      <div class="gallery-wrap">
-        <img class="gallery-img" src="${img.url}" alt="${img.cap}" loading="eager" onerror="this.style.opacity='.3';this.alt='Image failed to load'"/>
-        <div class="gallery-tag">${img.tag}</div>
-      </div>
-      <div class="gallery-nav">
-        <button class="gallery-btn" onclick="navGallery('${p.id}',-1)" ${idx===0?'disabled':''}>‹</button>
-        <div class="gallery-cap">${img.cap}</div>
-        <button class="gallery-btn" onclick="navGallery('${p.id}',1)" ${idx===p.images.length-1?'disabled':''}>›</button>
-      </div>
-      <div class="gallery-dots">${dots}</div>`;
-  }
-  else if(p.type==='video'){
-    const thumb = `https://img.youtube.com/vi/${p.videoId}/hqdefault.jpg`;
-    const ytUrl = `https://www.youtube.com/watch?v=${p.videoId}${p.start?'&t='+p.start:''}`;
-    inner = `<div class="card-type-badge">🎬 VIDEO</div>
-      <h2 class="card-title">${p.title}</h2>
-      <div class="yt-preview" onclick="window.open('${ytUrl}','_blank')">
-        <img class="yt-thumb" src="${thumb}" alt="${p.title}">
-        <div class="yt-play"><div class="yt-play-btn"></div></div>
-      </div>
-      <div class="yt-meta">
-        <div class="yt-ch">📺 ${p.channel}</div>
-      </div>
-      <a class="yt-watch" href="${ytUrl}" target="_blank" rel="noopener">Watch on YouTube →</a>
-      <p class="video-ctx">${p.ctx}</p>`;
-  }
-  else if(p.type==='map'){
-    inner = `<div class="card-type-badge">🗺️ REAL MAP</div>
-      <h2 class="card-title">${p.title}</h2>
-      <p class="map-note">This is where Mesopotamia was — in what is now Iraq, between the Tigris and Euphrates rivers.</p>
-      <div id="leaflet-map"></div>`;
-  }
-
-  const actions = `<div class="card-actions">
-    ${done
-      ? '<div class="already-badge">✓ Already in your collection!</div>'
-      : `<button class="btn-collect" onclick="collectPiece('${p.id}','${p.emoji}','${p.bigId}')">I've got this piece! ✓</button>`}
-    <button class="btn-secondary" onclick="closeCard()">Keep exploring</button>
-  </div>`;
-
-  document.getElementById('card-inner').innerHTML = inner + actions;
-  document.getElementById('card-modal').classList.add('active');
-
-  if(p.type==='map') initLeaflet();
-
-  if(!done){
-    if(S.readTimer){ clearInterval(S.readTimer); S.readTimer=null; }
-    const delays = { text:10, gallery:10, video:10, map:10 };
-    let secs = delays[p.type] || 8;
-    const btn = document.querySelector('.btn-collect');
-    if(btn){
-      btn.disabled = true;
-      btn.textContent = `✋ Read first... (${secs}s)`;
-      S.readTimer = setInterval(()=>{
-        secs--;
-        if(secs<=0){
-          clearInterval(S.readTimer); S.readTimer=null;
-          btn.disabled = false;
-          btn.textContent = "I've got this piece! ✓";
-        } else {
-          btn.textContent = `✋ Read first... (${secs}s)`;
-        }
-      }, 1000);
+  const timer = setTimeout(() => {
+    if (!handled) {
+      showNisabaMsg('Sorry. Just thinking about my mom.');
+      setNisabaPose('stand');
+      if(inp) { inp.disabled=false; inp.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing)sendNisaba();}; }
+      if(snd) { snd.disabled=false; snd.onclick=sendNisaba; }
+      setActions(buildAreaActions('area_3'));
+      handled = true;
     }
-  }
+  }, 3000);
+  // Cancel timer if user types
+  if(inp) inp.addEventListener('input', () => { if(inp.value.trim()) clearTimeout(timer); }, {once:true});
 }
 
-function navGallery(pieceId, dir){
-  const p = ALL_PIECES.find(x=>x.id===pieceId);
-  if(!p) return;
-  const cur = S.galleryIdx[pieceId] || 0;
-  S.galleryIdx[pieceId] = Math.max(0, Math.min(p.images.length-1, cur+dir));
-  // Re-render gallery section only
-  const done = S.collected.has(pieceId);
-  openCard(p); // re-open with new index (card stays open)
-}
-
-function closeCard(){
-  if(S.readTimer){ clearInterval(S.readTimer); S.readTimer=null; }
-  document.getElementById('card-modal').classList.remove('active');
-  // Destroy leaflet map if exists to prevent re-init issues
-  if(S.leafletMap){ S.leafletMap.remove(); S.leafletMap=null; }
-}
-
-function toggleKw(el){ el.classList.toggle('open'); }
-
-function collectPiece(id, emoji, bigId){
-  closeCard();
-  S.collected.add(id);
-
-  // Update HUD dot
-  const dot = document.getElementById('dot-'+id);
-  if(dot) dot.classList.add('filled');
-
-  // Flying animation
-  fly(emoji, id);
-
-  // Check if big piece complete
-  const bp = BIG_PIECES.find(b=>b.id===bigId);
-  if(bp && bp.subIds.every(sid=>S.collected.has(sid))){
-    document.getElementById('bp-'+bigId)?.classList.add('complete');
-    setTimeout(()=>showToast(bp.emoji+' '+capitalize(bigId)+' complete! ✨'), 700);
-  }
-}
-
-function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
-
-function fly(emoji, id){
-  const dot = document.getElementById('dot-'+id);
-  const r = dot ? dot.getBoundingClientRect() : null;
-  const el = document.createElement('div');
-  el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);font-size:2.2rem;z-index:300;pointer-events:none;transition:all .8s cubic-bezier(.4,0,.2,1);';
-  el.textContent = emoji;
-  document.body.appendChild(el);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>{
-    if(r) el.style.cssText = `position:fixed;top:${r.top+r.height/2}px;left:${r.left+r.width/2}px;transform:translate(-50%,-50%) scale(.3);font-size:2.2rem;z-index:300;pointer-events:none;opacity:0;transition:all .8s cubic-bezier(.4,0,.2,1);`;
-    setTimeout(()=>el.remove(), 850);
-  }));
-}
-
-function showToast(msg){
-  const t = document.createElement('div');
-  t.className = 'toast'; t.textContent = msg;
-  document.body.appendChild(t);
-  requestAnimationFrame(()=>requestAnimationFrame(()=>t.classList.add('show')));
-  setTimeout(()=>{ t.classList.remove('show'); setTimeout(()=>t.remove(),400); }, 2600);
-}
-
-// ═══════════════════════════════════
-//  LEAFLET MAP
-// ═══════════════════════════════════
-function initLeaflet(){
-  if(S.leafletMap) return;
-  if(!window.L){
+/* ── CONTENT CARDS ──────────────────────────────────────────────────────────── */
+function openMap() {
+  const inner = $('card-inner');
+  inner.innerHTML = '<div class="card-type-badge">📍 INTERACTIVE MAP</div>' +
+    '<div class="card-title">Ancient Mesopotamia</div>' +
+    '<div id="leaflet-map"></div>' +
+    '<p class="map-note">The "Land Between the Rivers" in modern-day Iraq. Nisaba\'s city of Ur is marked near the Persian Gulf.</p>' +
+    '<button class="btn-close-card" onclick="closeCard()">Close</button>';
+  $('card-modal').classList.add('on');
+  if (!window.L) {
     const css = document.createElement('link');
     css.rel='stylesheet'; css.href='https://unpkg.com/leaflet@1.9.4/dist/leaflet.css';
     document.head.appendChild(css);
     const js = document.createElement('script');
-    js.src = 'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
-    js.onload = createMap;
+    js.src='https://unpkg.com/leaflet@1.9.4/dist/leaflet.js';
+    js.onload = initLeaflet;
     document.head.appendChild(js);
-  } else { createMap(); }
+  } else { setTimeout(initLeaflet, 50); }
 }
 
-function createMap(){
-  const el = document.getElementById('leaflet-map');
-  if(!el || S.leafletMap) return;
-  S.leafletMap = L.map(el, { zoomControl:true, scrollWheelZoom:false }).setView([32.5, 44.5], 6);
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{
-    attribution:'© OpenStreetMap contributors', maxZoom:10
-  }).addTo(S.leafletMap);
-
-  const icon = (emoji,color) => L.divIcon({
-    html:`<div style="font-size:1.4rem;background:${color};border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;border:2px solid white;box-shadow:0 2px 8px rgba(0,0,0,.5)">${emoji}</div>`,
-    iconSize:[32,32], iconAnchor:[16,16], className:''
-  });
-
-  const sites = [
-    { pos:[30.9622,46.1033], emoji:'🏛️', name:'Ur (Ziggurat of Ur)' },
-    { pos:[32.5363,44.4206], emoji:'🏙️', name:'Babylon' },
-    { pos:[36.3589,43.1532], emoji:'🏛️', name:'Nineveh' },
-    { pos:[32.1233,45.2306], emoji:'🏙️', name:'Nippur' },
-    { pos:[31.3225,45.6380], emoji:'🌊', name:'Lagash' },
-  ];
-  sites.forEach(s=>L.marker(s.pos, {icon:icon(s.emoji,'rgba(240,192,64,.9)')})
-    .addTo(S.leafletMap).bindPopup(`<b>${s.name}</b>`));
-
-  // River labels
-  L.marker([34.5, 43.8], {icon:icon('🌊','rgba(26,74,110,.9)')})
-    .addTo(S.leafletMap).bindPopup('<b>Euphrates River →</b>');
-  L.marker([35.8, 43.5], {icon:icon('🌊','rgba(26,74,110,.9)')})
-    .addTo(S.leafletMap).bindPopup('<b>Tigris River →</b>');
+function initLeaflet() {
+  if (S.leafletMap) { setTimeout(()=>S.leafletMap.invalidateSize(),80); return; }
+  const el = $('leaflet-map'); if(!el) return;
+  const map = L.map('leaflet-map',{center:[32.5,45.0],zoom:5});
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap',maxZoom:8}).addTo(map);
+  L.marker([30.96,46.10]).addTo(map).bindPopup('<b>Ur</b> — Nisaba\'s home!').openPopup();
+  L.marker([32.54,44.42]).addTo(map).bindPopup('<b>Babylon</b>');
+  L.marker([36.34,43.13]).addTo(map).bindPopup('<b>Nineveh</b>');
+  L.marker([31.99,44.96]).addTo(map).bindPopup('<b>Nippur</b>');
+  S.leafletMap = map;
 }
 
-// ═══════════════════════════════════
-//  BIG PIECES CHECK
-// ═══════════════════════════════════
-function allBigPiecesComplete(){
-  return BIG_PIECES.every(bp=>bp.subIds.every(sid=>S.collected.has(sid)));
+function openGallery() {
+  const area = S.currentArea;
+  if (!area || !GALLERY[area]) return;
+  S.galleryArea = area; S.galleryIdx = 0;
+  $('card-modal').classList.add('on');
+  renderGallery();
 }
 
-// ═══════════════════════════════════
-//  ZARA
-// ═══════════════════════════════════
-function initZara(){
-  if(!allBigPiecesComplete()) return;
-  S.zaraRound=0; S.history=[]; S.sending=false;
-  document.getElementById('chat-box').innerHTML='';
-  // Reset preset buttons visibility
-  document.querySelectorAll('#presets .preset-btn').forEach(b=>b.style.display='');
-  document.getElementById('presets').style.display='flex';
-  document.getElementById('rounds-note').textContent='Round 1 of 20';
-  document.getElementById('btn-send').disabled=true;
-  document.getElementById('chat-input').value='';
-  showScreen('zara');
-  addMsg('zara',"You've been exploring for a while... I've been watching! 👀 Can I ask you something weird? You found out this land is super dry ☀️ — almost no rain. But ALSO floods every year 🌊. Does that make sense to you?");
+function renderGallery() {
+  const imgs = GALLERY[S.galleryArea];
+  const idx = S.galleryIdx, img = imgs[idx];
+  const dots = imgs.map((_,i)=>`<div class="g-dot ${i===idx?'active':''}"></div>`).join('');
+  $('card-inner').innerHTML =
+    '<div class="card-type-badge">🖼️ GALLERY</div>' +
+    `<div class="card-title">${AREAS[S.galleryArea].label}</div>` +
+    '<div class="gallery-wrap">' +
+    `<img class="gallery-img" src="${img.url}" alt="${img.tag}" onerror="this.style.background='#2a1208';this.removeAttribute('src')"/>` +
+    `<span class="gallery-tag">${img.tag}</span></div>` +
+    '<div class="gallery-nav">' +
+    `<button class="gallery-btn" onclick="galleryNav(-1)" ${idx===0?'disabled':''}>‹</button>` +
+    `<span class="gallery-cap">${img.cap}</span>` +
+    `<button class="gallery-btn" onclick="galleryNav(1)" ${idx===imgs.length-1?'disabled':''}>›</button></div>` +
+    `<div class="gallery-dots">${dots}</div>` +
+    '<button class="btn-close-card" onclick="closeCard()">Close</button>';
 }
 
-function addMsg(role, text){
-  const box = document.getElementById('chat-box');
-  const div = document.createElement('div');
-  div.className='msg '+role;
-  div.innerHTML=`<div class="msg-av">${role==='zara'?'🧭':'🌟'}</div><div class="msg-bubble">${text}</div>`;
-  box.appendChild(div); box.scrollTop=box.scrollHeight;
-}
-function showTyping(){
-  const box=document.getElementById('chat-box');
-  const div=document.createElement('div');
-  div.className='msg zara'; div.id='typing';
-  div.innerHTML=`<div class="msg-av">🧭</div><div class="msg-bubble"><div class="typing-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
-  box.appendChild(div); box.scrollTop=box.scrollHeight;
-}
-function removeTyping(){ const t=document.getElementById('typing'); if(t) t.remove(); }
-
-function sendPreset(q, btn){
-  // Hide just the clicked button; hide the whole block only when all are gone
-  btn.style.display='none';
-  const remaining = document.querySelectorAll('#presets .preset-btn:not([style*="none"])');
-  if(remaining.length===0) document.getElementById('presets').style.display='none';
-  document.getElementById('chat-input').value=q;
-  document.getElementById('btn-send').disabled=false;
-  sendMsg();
+function galleryNav(dir) {
+  const imgs = GALLERY[S.galleryArea];
+  S.galleryIdx = Math.max(0, Math.min(imgs.length-1, S.galleryIdx+dir));
+  renderGallery();
 }
 
-async function sendMsg(){
-  if(S.sending||S.zaraRound>=20) return;
-  const inp=document.getElementById('chat-input');
-  const text=inp.value.trim(); if(!text) return;
-  inp.value='';
-  document.getElementById('btn-send').disabled=true;
-  S.sending=true; S.zaraRound++;
-  addMsg('user',text); S.history.push({role:'user',content:text}); showTyping();
-  try{
-    // Call our Vercel serverless proxy — API key stays server-side
-    const res=await fetch('/api/zara',{
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({messages:S.history})
-    });
-    const data=await res.json(); removeTyping();
-    if(!res.ok) throw new Error(data.error||`Server error ${res.status}`);
-    const reply=data.reply;
-    S.history.push({role:'assistant',content:reply}); addMsg('zara',reply);
-    const note=document.getElementById('rounds-note');
-    if(S.zaraRound>=20){
-      document.getElementById('btn-send').disabled=true;
-    } else{
-      document.getElementById('btn-send').disabled=false;
-      if(S.zaraRound>=5){
-        note.innerHTML='🌟 <button onclick="unlockZara()" style="background:linear-gradient(135deg,var(--gold),var(--terra));border:none;border-radius:50px;padding:9px 22px;color:white;font-family:Nunito,sans-serif;font-weight:800;font-size:.9rem;cursor:pointer;margin-left:8px;">I\'m done with Mesopotamia! →</button>';
-      } else{
-        note.textContent=`Round ${S.zaraRound+1} of 20`;
-      }
-    }
-    if(reply.includes("I think you're ready to see the big picture now") && S.zaraRound<20) setTimeout(unlockZara,1800);
-  }catch(err){
-    removeTyping();
-    addMsg('zara',`Hmm, something went wrong — ${err.message}. Try again?`);
-    S.zaraRound--; S.history.pop(); document.getElementById('btn-send').disabled=false;
+function openVideo() {
+  const VIDEO_ID = '3Evl0tQAdXI'; // TED-Ed: How farming planted seeds for the Internet
+  $('card-modal').classList.add('on');
+  if (VIDEO_ID === 'TBD_BY_CELIA') {
+    $('card-inner').innerHTML =
+      '<div class="card-type-badge">🎬 VIDEO</div>' +
+      '<div class="card-title">Food of Ancient Mesopotamia</div>' +
+      '<div class="tbd-note">📹 <b>Video coming soon!</b><br><br>' +
+      'Celia: find a short cartoon about Mesopotamian food/farming (YouTube, ≤3 min) ' +
+      'and replace <code>VIDEO_ID</code> in the script.</div>' +
+      '<button class="btn-close-card" onclick="closeCard()">Close</button>';
+  } else {
+    $('card-inner').innerHTML =
+      '<div class="card-type-badge">🎬 VIDEO</div>' +
+      '<div class="card-title">Food of Ancient Mesopotamia</div>' +
+      `<div class="yt-preview" onclick="window.open('https://www.youtube.com/watch?v=${VIDEO_ID}','_blank')">` +
+      `<img class="yt-thumb" src="https://img.youtube.com/vi/${VIDEO_ID}/hqdefault.jpg" alt="video"/>` +
+      '<div class="yt-play"><div class="yt-play-btn"></div></div></div>' +
+      `<a class="yt-watch" href="https://www.youtube.com/watch?v=${VIDEO_ID}" target="_blank">▶ Watch on YouTube</a>` +
+      '<button class="btn-close-card" onclick="closeCard()">Close</button>';
   }
-  S.sending=false;
 }
 
-function unlockZara(){
-  S.collected.add('zara');
-  showFramework();
+function openCuneiform() {
+  $('card-modal').classList.add('on');
+  $('card-inner').innerHTML =
+    '<div class="card-type-badge">✍️ TRY IT</div>' +
+    '<div class="card-title">Write in Cuneiform!</div>' +
+    '<p class="card-body">Type any English word and Nisaba will "translate" it into cuneiform symbols!</p>' +
+    '<div style="display:flex;gap:8px;margin-bottom:12px;">' +
+    '<input id="cunei-input" maxlength="12" placeholder="e.g. river, grain, king..." autocomplete="off"' +
+    ' style="flex:1;background:rgba(255,255,255,.07);border:1px solid rgba(240,192,64,.3);' +
+    'border-radius:50px;padding:9px 16px;color:#F5ECD7;font-family:Nunito,sans-serif;font-size:.9rem;outline:none;"' +
+    ' onkeydown="if(event.key===\'Enter\')translateCuneiform()"/>' +
+    '<button onclick="translateCuneiform()" style="background:linear-gradient(135deg,#D4A96A,#C1440E);' +
+    'border:none;border-radius:50px;padding:9px 18px;color:white;font-family:Nunito,sans-serif;font-weight:700;cursor:pointer;">' +
+    'Translate →</button></div>' +
+    '<div id="cunei-result" style="min-height:60px;"></div>' +
+    '<button class="btn-close-card" onclick="closeCard()">Close</button>';
 }
 
-// ═══════════════════════════════════
-//  FRAMEWORK
-// ═══════════════════════════════════
-function showFramework(){
-  showScreen('framework');
-  const chain=document.getElementById('chain'); chain.innerHTML='';
-  CHAIN_DATA.forEach((node,i)=>{
-    if(i>0){ const a=document.createElement('div'); a.className='chain-arrow'; a.textContent='↓'; chain.appendChild(a); setTimeout(()=>a.classList.add('revealed'),(i*200)+100); }
-    const el=document.createElement('div'); el.className='chain-node';
-    el.innerHTML=`<div class="chain-icon">${node.icon}</div><div><div class="chain-label">${node.label}</div><div class="chain-desc">${node.desc}</div></div>`;
-    chain.appendChild(el); setTimeout(()=>el.classList.add('revealed'),i*200);
+function translateCuneiform() {
+  const inp = $('cunei-input'); if(!inp) return;
+  const word = inp.value.trim(); if(!word) return;
+  const len = Math.min(Math.max(word.length, 2), 6);
+  const syms = Array.from({length:len}, ()=>CUNEIF[Math.floor(Math.random()*CUNEIF.length)]);
+  $('cunei-result').innerHTML =
+    `<p class="cuneiform-word">"${word}" in cuneiform:</p>` +
+    `<div class="cuneiform-display">${syms.map(s=>`<span class="cuneif-sym">${s}</span>`).join('')}</div>` +
+    '<p style="color:var(--dim);font-size:.78rem;margin-top:8px;font-style:italic;">' +
+    'Nisaba: "You pressed each mark into soft clay with a reed. Beautiful!"</p>';
+}
+
+function closeCard() {
+  $('card-modal').classList.remove('on');
+  $('card-inner').innerHTML = '';
+  if (S.leafletMap) S.leafletMap.invalidateSize();
+}
+
+/* ── AREA 5: SCRIPTED FAREWELL ──────────────────────────────────────────────── */
+function enterArea5() {
+  $('museum-banner').textContent = '🏛️ The Seal Door';
+  S.a5Stage = 0;
+  nisOver().classList.add('on');
+  setNisabaPose('reach');
+  showA5Stage(0);
+}
+
+function showA5Stage(idx) {
+  S.a5Stage = idx;
+  const stage = A5_LINES[idx]; if(!stage) return;
+  showNisabaMsg(stage.text);
+  setNisabaPose(stage.pose);
+  const na = nisActions(); if(!na) return;
+  na.innerHTML = '';
+  const inp = nisInput(); const snd = nisSend();
+  if (stage.isPlaceUI) {
+    if(inp) inp.style.display='none'; if(snd) snd.style.display='none';
+    const placed = S.doorShardsPlaced;
+    na.innerHTML = '<div id="shard-place-ui">' +
+      [1,2,3,4,5].map(n=>`<div class="place-slot${placed>=n?' filled':''}" id="ps-${n}" onclick="placeShardInDoor(${n})"></div>`).join('') +
+      '</div>' +
+      '<p style="color:var(--dim);font-size:.76rem;text-align:center;width:100%;margin-top:4px;">Click shards to place them in the door</p>';
+    return;
+  }
+  if(inp) inp.style.display=''; if(snd) snd.style.display='';
+  stage.actions.forEach(act => {
+    const btn = document.createElement('button');
+    btn.textContent = act.label;
+    btn.className = 'nis-continue';
+    btn.onclick = () => window[act.fn] && window[act.fn]();
+    na.appendChild(btn);
   });
-  setTimeout(()=>document.getElementById('fw-question').classList.add('revealed'),CHAIN_DATA.length*200+300);
 }
 
-// ═══════════════════════════════════
-//  REPLAY
-// ═══════════════════════════════════
-function replayGame(){
-  S.collected=new Set(); S.zaraRound=0; S.history=[]; S.yoyoX=200;
-  document.querySelectorAll('.bp-dot').forEach(d=>d.classList.remove('filled'));
-  document.querySelectorAll('.bp-hud').forEach(d=>d.classList.remove('complete'));
-  showGame();
+function startPlaceShards() { showA5Stage(2); }
+function a5Next() { showA5Stage(S.a5Stage + 1); }
+
+function placeShardInDoor(n) {
+  if (S.doorShardsPlaced >= n) return; // already placed
+  if (n > S.shards) { showToast("You haven't found this memory yet!"); return; }
+  // Fill all slots up to n
+  for (let i = S.doorShardsPlaced + 1; i <= n; i++) {
+    const ps = $(`ps-${i}`); if(ps) ps.classList.add('filled');
+    const ds = $(`ds-${i}`); if(ds){ ds.setAttribute('fill','#F0C040'); ds.setAttribute('stroke','#F0C040'); }
+  }
+  S.doorShardsPlaced = n;
+  const glow = $('door-glow'); if(glow) glow.setAttribute('opacity', String(n * 0.18));
+  if (n >= 5) setTimeout(()=>showA5Stage(3), 800);
 }
 
-// ═══════════════════════════════════
-//  GATE ANIMALS
-// ═══════════════════════════════════
-function showGateAnimal(zoneId){
-  S.gateActive = true;
-  S.activeGateId = zoneId;
-  S.keys.ArrowLeft = false; S.keys.ArrowRight = false;
-  const gate = GATE_ANIMALS[zoneId];
-  const box = document.getElementById('gate-box');
-
-  // Inject SVG
-  document.getElementById('gate-animal-svg').innerHTML = gate.svg;
-  document.getElementById('gate-q').textContent = gate.question;
-  document.getElementById('gate-response').textContent = '';
-  document.getElementById('gate-input').value = '';
-
-  // Inject option buttons
-  const optsEl = document.getElementById('gate-opts');
-  optsEl.innerHTML = gate.options.map(opt =>
-    `<button class="preset-btn" onclick="gateAnimalRespond()">${opt}</button>`
-  ).join('');
-
-  // Entrance animation
-  box.className = 'gate-box anim-' + gate.entranceAnim;
-
-  // Show overlay
-  document.getElementById('gate-overlay').classList.add('active');
+function finishGame() {
+  $('golden-flash2').classList.add('go');
+  nisOver().classList.remove('on');
+  setTimeout(() => {
+    showScreen('end');
+    S.phase = 'ending';
+    $('shard-bar').classList.remove('on');
+    $('museum-banner').classList.remove('on');
+    $('hud-back').classList.remove('on');
+    setTimeout(showEndMessage, 1200);
+  }, 1400);
 }
 
-function gateAnimalRespond(){
-  const zoneId = S.activeGateId;
-  const gate = GATE_ANIMALS[zoneId];
-  const optsEl = document.getElementById('gate-opts');
-  const inputEl = document.getElementById('gate-input');
-
-  // Disable all options
-  optsEl.querySelectorAll('button').forEach(b=>{ b.disabled=true; b.style.opacity='.4'; });
-  inputEl.disabled = true;
-
-  // Show response
-  document.getElementById('gate-response').textContent = gate.response;
-
-  // Close after 1.5s and mark cleared
-  setTimeout(()=>{
-    const box = document.getElementById('gate-box');
-    box.classList.add('anim-fade-out');
-    setTimeout(()=>{
-      document.getElementById('gate-overlay').classList.remove('active');
-      box.classList.remove('anim-fade-out');
-      S.gateActive = false;
-      S.activeGateId = null;
-      // Persist cleared state
-      S.gateCleared.add(zoneId);
-      sessionStorage.setItem('yoyo_gates_cleared', JSON.stringify([...S.gateCleared]));
-    }, 520);
-  }, 1500);
+/* ── BEDROOM ENDING ──────────────────────────────────────────────────────────── */
+function showEndMessage() {
+  const el = document.createElement('div');
+  el.style.cssText = 'position:absolute;bottom:320px;left:50%;transform:translateX(-50%);' +
+    'z-index:10;background:rgba(17,9,4,.95);border:2px solid rgba(240,192,64,.5);' +
+    'border-radius:18px;padding:14px 20px;max-width:340px;text-align:center;' +
+    'color:#F5ECD7;font-size:.9rem;line-height:1.65;font-family:Nunito,sans-serif;' +
+    'animation:cardUp .5s ease;';
+  el.innerHTML = 'Nisaba is gone. But she left something on your desk...<br><br>' +
+    '<span style="color:var(--gold);font-family:Cinzel,serif;font-size:.82rem;">Tap the Seal to see your badge</span>';
+  $('screen-bedroom-end').appendChild(el);
 }
 
-function submitGateInput(){
-  const val = document.getElementById('gate-input').value.trim();
-  if(!val) return;
-  gateAnimalRespond();
+/* ── BADGE MODAL ─────────────────────────────────────────────────────────────── */
+function openBadge() {
+  const d = $('badge-date');
+  if(d) d.textContent = new Date().toLocaleDateString('en-CA',{year:'numeric',month:'long',day:'numeric'});
+  $('badge-modal').classList.add('on');
+}
+
+function flipBadge() {
+  const b = $('badge-back'); if(b) b.classList.toggle('on');
+}
+
+function checkBadgeAnswers() {
+  let correct = 0;
+  for (let i = 1; i <= 5; i++) {
+    const qEl = $(`bq${i}`); if(!qEl) continue;
+    const inp = qEl.querySelector('input'); if(!inp) continue;
+    const val = inp.value.trim().toLowerCase();
+    const ok = ANSWERS[`bq${i}`].some(kw => val.includes(kw));
+    qEl.classList.toggle('ok', ok);
+    qEl.classList.toggle('no', !ok);
+    if(ok) correct++;
+  }
+  const r = $('badge-result'); if(r) r.textContent = `${correct}/5 correct!`;
+  if (correct >= 5) {
+    localStorage.setItem('yoyo_crossword_meso', '1');
+    const cu = $('crossword-unlock'); if(cu) cu.style.display='block';
+  }
+}
+
+/* ── TOAST ───────────────────────────────────────────────────────────────────── */
+let toastTimer = null;
+function showToast(msg) {
+  let t = document.querySelector('.toast');
+  if (!t) { t = document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
 }
 </script>
 </body>

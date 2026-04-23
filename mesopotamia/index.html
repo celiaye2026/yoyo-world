@@ -1180,8 +1180,7 @@ function buildAreaActions(key) {
   const turn = S.areaTurns[key] || 0;
   const acts = [];
   if (area.actionBtn) acts.push({ label:area.actionBtn.label, fn:area.actionBtn.fn });
-  acts.push({ label:'Tell me more!', fn:'continueAreaChat' });
-  if (turn >= area.shardTurn) acts.push({ label:'Got it! → Next area', fn:'completeArea', style:'continue' });
+  if (turn >= area.shardTurn) acts.push({ label:'Got it! → Next exhibit ✦', fn:'completeArea', style:'continue' });
   return acts;
 }
 
@@ -1241,8 +1240,10 @@ function completeArea() {
   S.areaCompleted[key] = true;
   localStorage.setItem('meso_areas', JSON.stringify(S.areaCompleted));
   closeOverlay();
-  S.currentArea = null;
-  $('museum-banner').textContent = '🏛️ Vancouver Museum · Mesopotamia Special Exhibit';
+  // Do NOT null S.currentArea here — Yoyo is still physically in the zone.
+  // Nulling it causes checkArea() to immediately re-trigger enterArea() next frame.
+  // The zone-exit logic in checkArea() will clear it when Yoyo walks away.
+  $('museum-banner').textContent = '🏛️ Walk to the next exhibit →';
 }
 
 function closeOverlay() { nisOver().classList.remove('on'); }
@@ -1265,9 +1266,9 @@ function setNisabaPose(pose) {
 function setActions(actions) {
   const na = nisActions(); if(!na) return;
   na.innerHTML = '';
-  // Hide free-text input when action buttons drive the conversation
+  // Always show the text input so Yoyo can converse freely
   const row = $('nis-input-row');
-  if (row) row.style.display = actions.length > 0 ? 'none' : '';
+  if (row) row.style.display = '';
   actions.forEach(act => {
     const btn = document.createElement('button');
     btn.textContent = act.label;
@@ -1297,9 +1298,6 @@ function triggerEmotionalPause() {
   setNisabaPose('quiet');
   showNisabaMsg('...');
   setActions([]);
-  // Emotional pause: show input so Yoyo can choose to comfort Nisaba
-  const row = $('nis-input-row');
-  if (row) row.style.display = '';
   const inp = nisInput(); const snd = nisSend();
   if(inp) inp.disabled = true; if(snd) snd.disabled = true;
 

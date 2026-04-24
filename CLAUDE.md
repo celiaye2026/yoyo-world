@@ -58,7 +58,7 @@
 |------|-----------|---------|-------------|
 | Tigris & Euphrates River Basin | 100–960 | 🗺️ Leaflet 地图 | `area_1` |
 | Mud-Brick Construction | 1020–1920 | 🖼️ 图库 | `area_2` |
-| Food of the Two Rivers | 2020–2960 | 🎬 TED-Ed 视频 `3Evl0tQAdXI` | `area_3` |
+| Food of the Two Rivers | 2020–2960 | 🎬 TED-Ed 视频 `XBk9KywTIgk`（Rise and fall of history's first empire） | `area_3` |
 | Cuneiform: The First Writing | 3020–3960 | ✍️ 楔形文字翻译器 | `area_4` |
 | The Seal Door | 4100–4750 | 无（脚本化告别） | `area_5` |
 

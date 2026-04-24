@@ -904,7 +904,7 @@ const AREAS = {
 
 /* ── AREA 5 SCRIPTED LINES ─────────────────────────────────────────────────── */
 const A5_LINES = [
-  { text:'Yoyo... I know this door. This is the temple door from back home. This is REALLY it!', pose:'reach', actions:[] },
+  { text:'Yoyo... I know this door. This is the temple door from back home. This is REALLY it!', pose:'reach', actions:[{label:'Continue →', fn:'a5Next'}] },
   { text:'See those five circles? Each one needs a piece of my memory. Can you help me place them?', pose:'stand', actions:[{label:'Place the shards →', fn:'startPlaceShards'}] },
   { text:'(Place your memory shards in the door slots below)', pose:'stand', actions:[], isPlaceUI:true },
   { text:'It\'s GLOWING! It\'s working, Yoyo! I can feel it — I\'m going home!', pose:'wave', actions:[{label:'Continue →', fn:'a5Next'}] },
@@ -943,10 +943,8 @@ const nisChar   = () => $('nis-char');
 
 /* ── INIT ───────────────────────────────────────────────────────────────────── */
 window.addEventListener('DOMContentLoaded', () => {
-  const sv = localStorage.getItem('meso_shards');
-  if (sv) S.shards = parseInt(sv, 10) || 0;
-  const av = localStorage.getItem('meso_areas');
-  if (av) try { S.areaCompleted = JSON.parse(av); } catch(e){}
+  localStorage.removeItem('meso_shards');
+  localStorage.removeItem('meso_areas');
   startBedroom();
 });
 
@@ -1466,6 +1464,12 @@ function closeCard() {
 /* ── AREA 5: SCRIPTED FAREWELL ──────────────────────────────────────────────── */
 function enterArea5() {
   $('museum-banner').textContent = '🏛️ The Seal Door';
+  if (S.shards < 5) {
+    S.shards = 5;
+    for (let i = 1; i <= 5; i++) fillShardSlot(i);
+    localStorage.setItem('meso_shards', String(S.shards));
+    showToast('✦ The final memory awakens!');
+  }
   S.a5Stage = 0;
   nisOver().classList.add('on');
   setNisabaPose('reach');
@@ -1479,9 +1483,9 @@ function showA5Stage(idx) {
   setNisabaPose(stage.pose);
   const na = nisActions(); if(!na) return;
   na.innerHTML = '';
-  const inp = nisInput(); const snd = nisSend();
+  const row = $('nis-input-row');
+  if (row) row.style.display = 'none';
   if (stage.isPlaceUI) {
-    if(inp) inp.style.display='none'; if(snd) snd.style.display='none';
     const placed = S.doorShardsPlaced;
     na.innerHTML = '<div id="shard-place-ui">' +
       [1,2,3,4,5].map(n=>`<div class="place-slot${placed>=n?' filled':''}" id="ps-${n}" onclick="placeShardInDoor(${n})"></div>`).join('') +
@@ -1489,7 +1493,6 @@ function showA5Stage(idx) {
       '<p style="color:var(--dim);font-size:.76rem;text-align:center;width:100%;margin-top:4px;">Click shards to place them in the door</p>';
     return;
   }
-  if(inp) inp.style.display=''; if(snd) snd.style.display='';
   stage.actions.forEach(act => {
     const btn = document.createElement('button');
     btn.textContent = act.label;

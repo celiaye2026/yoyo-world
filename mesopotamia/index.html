@@ -57,6 +57,10 @@ body{font-family:'Nunito',sans-serif;background:#1a0d04;color:var(--text);overfl
 #yoyo-el{position:fixed;bottom:82px;z-index:20;transform:translateX(-50%);}
 #yoyo-el.walking{animation:yoyo-walk .42s ease-in-out infinite;}
 #yoyo-el.face-left svg{transform:scaleX(-1);}
+#nisaba-el{position:fixed;bottom:82px;z-index:20;transform:translateX(-50%);}
+#nisaba-el svg{width:56px;height:81px;}
+#nisaba-el.walking{animation:yoyo-walk .42s ease-in-out infinite;animation-delay:-.21s;}
+#nisaba-el.face-left svg{transform:scaleX(-1);}
 @keyframes yoyo-walk{0%,100%{transform:translateX(-50%) translateY(0)}50%{transform:translateX(-50%) translateY(-7px)}}
 
 /* ── MUSEUM HUD ── */
@@ -583,6 +587,8 @@ body{font-family:'Nunito',sans-serif;background:#1a0d04;color:var(--text);overfl
     </div>
   </div>
 
+  <!-- Nisaba walks beside Yoyo -->
+  <div id="nisaba-el"></div>
   <!-- Yoyo character -->
   <div id="yoyo-el">
     <svg width="52" height="68" viewBox="0 0 70 92">
@@ -1066,6 +1072,7 @@ function finishTransition() {
   $('shard-bar').classList.add('on');
   $('museum-banner').classList.add('on');
   $('hud-back').classList.add('on');
+  $('nisaba-el').innerHTML = NIS_SVG.stand;
   // Restore shard slots
   for (let i = 1; i <= S.shards; i++) fillShardSlot(i);
   // Walk hint
@@ -1107,8 +1114,11 @@ function tick() {
       S.dir = dx > 0 ? 1 : -1;
       $('yoyo-el').classList.add('walking');
       $('yoyo-el').classList.toggle('face-left', S.dir < 0);
+      $('nisaba-el').classList.add('walking');
+      $('nisaba-el').classList.toggle('face-left', S.dir < 0);
     } else {
       $('yoyo-el').classList.remove('walking');
+      $('nisaba-el').classList.remove('walking');
     }
   }
   positionYoyo();
@@ -1122,6 +1132,7 @@ function positionYoyo() {
   let cam = S.yoyoX - anchorX;
   cam = Math.max(0, Math.min(WORLD_W - vw, cam));
   $('yoyo-el').style.left = anchorX + 'px';
+  $('nisaba-el').style.left = (anchorX + 48) + 'px';
   $('bg-layer').style.transform  = `translateX(${-cam * 0.3}px)`;
   $('mid-layer').style.transform = `translateX(${-cam * 0.6}px)`;
   $('fg-layer').style.transform  = `translateX(${-cam}px)`;
